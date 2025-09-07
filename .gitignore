@@ -6,5 +6,3 @@ build/
 .idea/
 CMakeSettings.json
 Makefile
-
-!thirdparty/opencv/bin/**
