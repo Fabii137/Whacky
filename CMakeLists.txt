@@ -3,16 +3,7 @@ project(Whacky)
 
 set(CMAKE_CXX_STANDARD 20)
 
-if(MSVC) 
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-	add_compile_options(/arch:AVX2) #make sure SIMD optimizations take place
-endif()
-
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE) #link time optimization
-
-
-file(GLOB_RECURSE MY_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+file(GLOB_RECURSE MY_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 add_executable(${CMAKE_PROJECT_NAME} ${MY_SOURCES})
 
