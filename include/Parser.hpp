@@ -16,7 +16,7 @@ public:
     std::optional<NodeExpr> parseExpr();
     std::optional<NodeBye> parse();
 private:
-    std::optional<Token> peak(int steps = 1) const;
+    std::optional<Token> peek(int steps = 1) const;
     Token consume();
 private:
     size_t m_Index = 0;

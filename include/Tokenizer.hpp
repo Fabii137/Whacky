@@ -37,7 +37,7 @@ public:
     std::vector<Token> tokenize();
 
 private:
-    std::optional<char> peak(int steps = 1) const;
+    std::optional<char> peek(int steps = 1) const;
     char consume();
 private:
     size_t m_Index = 0;
