@@ -19,9 +19,14 @@ std::vector<Token> Tokenizer::tokenize() {
                 tokens.push_back({ .type = TokenType::bye });
                 buf.clear();
                 continue;
+            } else if (buf == "let") {
+                tokens.push_back({ .type = TokenType::let});
+                buf.clear();
+                continue;
             } else {
-                std::cerr << "Invalid token" << std::endl;
-                exit(EXIT_FAILURE);
+                tokens.push_back({ .type = TokenType::ident, .value = buf });
+                buf.clear();
+                continue;
             }
         } else if (std::isdigit(peek().value())) {
             buf.push_back(consume());
@@ -31,9 +36,21 @@ std::vector<Token> Tokenizer::tokenize() {
             tokens.push_back({ .type = TokenType::int_lit, .value = buf });
             buf.clear();
             continue;
+        } else if (peek().value() == '(') {
+            consume();
+            tokens.push_back({ .type = TokenType::open_paren });
+            continue;
+        } else if (peek().value() == ')') {
+            consume();
+            tokens.push_back({ .type = TokenType::close_paren });
+            continue;
         } else if (peek().value() == ';') {
             consume();
             tokens.push_back({ .type = TokenType::semi });
+            continue;
+        } else if (peek().value() == '=') {
+            consume();
+            tokens.push_back({ .type = TokenType::eq });
             continue;
         } else if(std::isspace(peek().value())) {
             consume();
@@ -48,12 +65,12 @@ std::vector<Token> Tokenizer::tokenize() {
     return tokens;
 }
 
-std::optional<char> Tokenizer::peek(int steps /*=1*/) const {
-    if(m_Index + steps > m_Src.size()) {
+std::optional<char> Tokenizer::peek(int offset /*=0*/) const {
+    if(m_Index + offset >= m_Src.size()) {
         return {};
     }
 
-    return m_Src.at(m_Index);
+    return m_Src.at(m_Index + offset);
 }
 
 char Tokenizer::consume() {

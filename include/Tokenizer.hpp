@@ -9,6 +9,15 @@ enum class TokenType {
     semi,
 
     int_lit, // int
+    nothin, // void
+    vibes, // bool
+
+    let,
+    ident,
+    eq,
+
+    open_paren,
+    close_paren,
 
     thingy, // function
     gimmeback, // return
@@ -37,7 +46,7 @@ public:
     std::vector<Token> tokenize();
 
 private:
-    std::optional<char> peek(int steps = 1) const;
+    std::optional<char> peek(int offset = 0) const;
     char consume();
 private:
     size_t m_Index = 0;
