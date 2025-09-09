@@ -1,6 +1,6 @@
 #pragma once
-#include <string>
-
+#include <cstddef>
+#include <cstdlib>
 
 class ArenaAllocator {
 public:
