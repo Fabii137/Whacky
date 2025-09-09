@@ -7,6 +7,7 @@
 class Generator {
 public:
     Generator(NodeProg prog);
+    void generateTerm(const NodeTerm* term);
     void generateExpr(const NodeExpr* expr);
     void generateStmt(const NodeStmt* stmt);
     std::string generateProg();

@@ -7,27 +7,45 @@ Generator::Generator(NodeProg root): m_Prog(std::move(root)) {
 
 }
 
-void Generator::generateExpr(const NodeExpr* expr) {
-    struct ExprVisitor {
+void Generator::generateTerm(const NodeTerm* term) {
+    struct TermVisitor {
         Generator* generator;
-        void operator()(const NodeExprIntLit* exprIntLit) const {
-            generator->m_Output << "\tmov rax, " << exprIntLit->int_lit.value.value() << "\n";
+        void operator()(const NodeTermIntLit* termIntList) const {
+            generator->m_Output << "\tmov rax, " << termIntList->int_lit.value.value() << "\n";
             generator->push("rax");
         }
 
-        void operator()(const NodeExprIdent* exprIdent) const {
-            if(const auto& varEntry = generator->m_Vars.find(exprIdent->ident.value.value()); varEntry != generator->m_Vars.end()) {
+        void operator()(const NodeTermIdent* termIdent) const {
+            if(const auto& varEntry = generator->m_Vars.find(termIdent->ident.value.value()); varEntry != generator->m_Vars.end()) {
                 std::stringstream offset;
                 offset << "QWORD [rsp + " << (generator->m_StackSize - varEntry->second.stackLoc-1) * 8 << "]";
                 generator->push(offset.str());
             } else {
-                std::cerr << "Undeclared identifier: " << exprIdent->ident.value.value() << std::endl;
+                std::cerr << "Undeclared identifier: " << termIdent->ident.value.value() << std::endl;
                 exit(EXIT_FAILURE);
             }
         }
+    };
+
+    TermVisitor visitor({ .generator = this });
+    std::visit(visitor, term->var);
+}
+
+void Generator::generateExpr(const NodeExpr* expr) {
+    struct ExprVisitor {
+        Generator* generator;
+        void operator()(const NodeTerm* term) const {
+            generator->generateTerm(term);
+        }
 
         void operator()(const NodeBinExpr* binExpr) const {
-            assert(false);
+            generator->generateExpr(binExpr->add->left);
+            generator->generateExpr(binExpr->add->right);
+
+            generator->pop("rax");
+            generator->pop("rbx");
+            generator->m_Output << "\tadd rax, rbx\n";
+            generator->push("rax");
         }
     };
 

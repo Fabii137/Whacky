@@ -11,13 +11,13 @@ struct NodeBinExprAdd {
     NodeExpr* right;
 };
 
-struct NodeBinExprMul {
-    NodeExpr* left;
-    NodeExpr* right;
-};
+// struct NodeBinExprMul {
+//     NodeExpr* left;
+//     NodeExpr* right;
+// };
 
 struct NodeBinExpr {
-    std::variant<NodeBinExprAdd*, NodeBinExprMul*> var;
+    NodeBinExprAdd* add;
 };
 
 struct NodeTermIntLit {
@@ -64,6 +64,8 @@ public:
 private:
     std::optional<Token> peek(int offset = 0) const;
     Token consume();
+    Token tryConsume(TokenType type, const std::string& errMessage);
+    std::optional<Token> tryConsume(TokenType type);
 private:
     size_t m_Index = 0;
     const std::vector<Token> m_Tokens;

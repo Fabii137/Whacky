@@ -6,16 +6,16 @@ Parser::Parser(std::vector<Token> tokens) : m_Tokens(std::move(tokens)), m_Alloc
 }
 
 std::optional<NodeTerm*> Parser::parseTerm() {
-    if(peek().has_value() && peek().value().type == TokenType::int_lit) {
+    if(auto intLit = tryConsume(TokenType::int_lit)) {
         NodeTermIntLit* termIntLit = m_Allocator.alloc<NodeTermIntLit>();
-        termIntLit->int_lit = consume();
+        termIntLit->int_lit = intLit.value();
 
         NodeTerm* term = m_Allocator.alloc<NodeTerm>();
         term->var = termIntLit;
         return term;
-    } else if (peek().has_value() && peek().value().type == TokenType::ident) {
+    } else if (auto ident = tryConsume(TokenType::ident)) {
         NodeTermIdent* termIdent = m_Allocator.alloc<NodeTermIdent>();
-        termIdent->ident = consume();
+        termIdent->ident = ident.value();
 
         NodeTerm* term = m_Allocator.alloc<NodeTerm>();
         term->var = termIdent;
@@ -27,30 +27,31 @@ std::optional<NodeTerm*> Parser::parseTerm() {
 
 std::optional<NodeExpr*> Parser::parseExpr() {
     if(auto term = parseTerm()) {
-        if(peek().has_value() && peek().value().type == TokenType::plus) {
+        if(tryConsume(TokenType::plus).has_value()) {
             NodeBinExpr* binExpr = m_Allocator.alloc<NodeBinExpr>();
-            if(peek().has_value() && peek().value().type == TokenType::plus) {
-                NodeBinExprAdd* binExprAdd = m_Allocator.alloc<NodeBinExprAdd>();
-                NodeExpr* leftExpr = m_Allocator.alloc<NodeExpr>();
-                leftExpr->var = term.value();
-                binExprAdd->left = leftExpr;
-                consume(); // +
-                if(auto right = parseExpr()) {
-                    binExprAdd->right = right.value();
-                    binExpr->var = binExprAdd;
+            NodeBinExprAdd* binExprAdd = m_Allocator.alloc<NodeBinExprAdd>();
+            NodeExpr* leftExpr = m_Allocator.alloc<NodeExpr>();
+            leftExpr->var = term.value();
+            binExprAdd->left = leftExpr;
+            if(auto right = parseExpr()) {
+                binExprAdd->right = right.value();
+                binExpr->add = binExprAdd;
 
-                    NodeExpr* expr = m_Allocator.alloc<NodeExpr>();
-                    expr->var = binExpr;
-                    return expr;
-                } else {
-                    std::cerr << "Expected expression" << std::endl;
-                    exit(EXIT_FAILURE);
-                }
-            } else {
                 NodeExpr* expr = m_Allocator.alloc<NodeExpr>();
+                expr->var = binExpr;
+                return expr;
+            } else {
+                std::cerr << "Expected expression" << std::endl;
+                exit(EXIT_FAILURE);
             }
+        } else {
+            NodeExpr* expr = m_Allocator.alloc<NodeExpr>();
+            expr->var = term.value();
+            return expr;
         }
-    } 
+    } else {
+        return {};
+    }
 }
 
 std::optional<NodeStmt*> Parser::parseStmt() {
@@ -65,19 +66,8 @@ std::optional<NodeStmt*> Parser::parseStmt() {
             exit(EXIT_FAILURE);
         }
 
-        if(peek().has_value() && peek().value().type == TokenType::close_paren) {
-            consume();
-        } else {
-            std::cerr << "Expected ')'" << std::endl;
-            exit(EXIT_FAILURE);
-        }
-
-        if(peek().has_value() && peek().value().type == TokenType::semi) {
-            consume();
-        } else {
-            std::cerr << "Expected ';'" << std::endl;
-            exit(EXIT_FAILURE);
-        }
+        tryConsume(TokenType::close_paren, "Expected ')'");
+        tryConsume(TokenType::semi, "Expected ';'");
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
         stmt->var = stmtBye;
@@ -99,12 +89,7 @@ std::optional<NodeStmt*> Parser::parseStmt() {
             exit(EXIT_FAILURE);
         }
 
-        if(peek().has_value() && peek().value().type == TokenType::semi) {
-            consume(); // ;
-        } else {
-            std::cerr << "Expected ';'" << std::endl;
-            exit(EXIT_FAILURE);
-        }
+        tryConsume(TokenType::semi, "Expected ';'");
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
         stmt->var = stmtLet;
@@ -138,4 +123,21 @@ std::optional<Token> Parser::peek(int offset /*=0*/) const {
 
 Token Parser::consume() {
     return m_Tokens.at(m_Index++);
+}
+
+Token Parser::tryConsume(TokenType type, const std::string& errMessage) {
+    if(peek().has_value() && peek().value().type == type) {
+        return consume();
+    } else {
+        std::cerr << errMessage << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+std::optional<Token> Parser::tryConsume(TokenType type) {
+    if(peek().has_value() && peek().value().type == type) {
+        return consume();
+    } else {
+        return {};
+    }
 }
