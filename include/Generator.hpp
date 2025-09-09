@@ -7,8 +7,8 @@
 class Generator {
 public:
     Generator(NodeProg prog);
-    void generateExpr(const NodeExpr& expr);
-    void generateStmt(const NodeStmt& stmt);
+    void generateExpr(const NodeExpr* expr);
+    void generateStmt(const NodeStmt* stmt);
     std::string generateProg();
 private:
     void push(const std::string& reg);

@@ -1,3 +1,4 @@
+```text
 [Prog] -> [Stmt]*
 
 [Stmt] -> { 
@@ -6,8 +7,7 @@
 }
 
 [Expr] -> {
-    int_lit
-    ident
+    [Term]
     [BinExpr]
 }
 
@@ -15,3 +15,9 @@
     [Expr] * [Expr] // prec = 1
     [Expr] + [Expr] // prec = 0
 }
+
+[Term] -> {
+    int-lit
+    ident
+}
+```

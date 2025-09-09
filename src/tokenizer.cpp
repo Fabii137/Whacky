@@ -52,6 +52,14 @@ std::vector<Token> Tokenizer::tokenize() {
             consume();
             tokens.push_back({ .type = TokenType::eq });
             continue;
+        } else if (peek().value() == '+') {
+            consume();
+            tokens.push_back({ .type = TokenType::plus });
+            continue;
+        } else if (peek().value() == '*') {
+            consume();
+            tokens.push_back({ .type = TokenType::mul });
+            continue;
         } else if(std::isspace(peek().value())) {
             consume();
             continue;

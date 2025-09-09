@@ -5,19 +5,23 @@
 #include <vector>
 
 enum class TokenType {
+    let,
+    ident,
+    eq,
+
+    plus,
+    mul,
+
+    open_paren,
+    close_paren,
+
+
     bye, // exit()
     semi,
 
     int_lit, // int
     nothin, // void
     vibes, // bool
-
-    let,
-    ident,
-    eq,
-
-    open_paren,
-    close_paren,
 
     thingy, // function
     gimmeback, // return
