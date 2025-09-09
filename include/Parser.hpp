@@ -26,7 +26,7 @@ struct NodeExprIdent {
 // };
 
 struct NodeExpr {
-    std::variant<NodeExprIntLit, NodeExprIdent, /*NodeBinExpr*/> var;
+    std::variant<NodeExprIntLit, NodeExprIdent/*, NodeBinExpr*/> var;
 };
 
 struct NodeStmtLet {
