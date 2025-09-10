@@ -18,15 +18,12 @@ std::vector<Token> Tokenizer::tokenize() {
             if(buf == "bye") {
                 tokens.push_back({ .type = TokenType::bye });
                 buf.clear();
-                continue;
             } else if (buf == "let") {
                 tokens.push_back({ .type = TokenType::let});
                 buf.clear();
-                continue;
             } else {
                 tokens.push_back({ .type = TokenType::ident, .value = buf });
                 buf.clear();
-                continue;
             }
         } else if (std::isdigit(peek().value())) {
             buf.push_back(consume());
@@ -35,36 +32,28 @@ std::vector<Token> Tokenizer::tokenize() {
             }
             tokens.push_back({ .type = TokenType::int_lit, .value = buf });
             buf.clear();
-            continue;
         } else if (peek().value() == '(') {
             consume();
             tokens.push_back({ .type = TokenType::open_paren });
-            continue;
         } else if (peek().value() == ')') {
             consume();
             tokens.push_back({ .type = TokenType::close_paren });
-            continue;
         } else if (peek().value() == ';') {
             consume();
             tokens.push_back({ .type = TokenType::semi });
-            continue;
         } else if (peek().value() == '=') {
             consume();
             tokens.push_back({ .type = TokenType::eq });
-            continue;
         } else if (peek().value() == '+') {
             consume();
             tokens.push_back({ .type = TokenType::plus });
-            continue;
         } else if (peek().value() == '*') {
             consume();
             tokens.push_back({ .type = TokenType::mul });
-            continue;
         } else if(std::isspace(peek().value())) {
             consume();
-            continue;
         } else {
-            std::cerr << "Messed up" << std::endl;
+            std::cerr << "Invalid token" << std::endl;
             exit(EXIT_FAILURE);
         }
     }
