@@ -116,7 +116,7 @@ std::optional<NodeExpr*> Parser::parseExpr(int minPrec /*=0*/) {
 
 std::optional<NodeStmt*> Parser::parseStmt() {
     if(peek().has_value() && peek().value().type == TokenType::bye && peek(1).has_value() && peek(1).value().type == TokenType::open_paren) {
-        consume(); // exit
+        consume(); // bye
         consume(); // open paren
         NodeStmtBye* stmtBye = m_Allocator.alloc<NodeStmtBye>();
         if(auto expr = parseExpr()) {
