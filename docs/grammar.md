@@ -2,7 +2,7 @@
 [Prog] -> [Stmt]*
 
 [Stmt] -> { 
-	exit([Expr])
+	bye([Expr])
 	let ident = [Expr]
 }
 
@@ -17,7 +17,7 @@
 }
 
 [Term] -> {
-    int-lit
+    int_lit
     ident
 }
 ```
