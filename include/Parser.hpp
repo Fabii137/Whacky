@@ -11,13 +11,23 @@ struct NodeBinExprAdd {
     NodeExpr* right;
 };
 
-// struct NodeBinExprMul {
-//     NodeExpr* left;
-//     NodeExpr* right;
-// };
+struct NodeBinExprSub {
+    NodeExpr* left;
+    NodeExpr* right;
+};
+
+struct NodeBinExprMul {
+    NodeExpr* left;
+    NodeExpr* right;
+};
+
+struct NodeBinExprDiv {
+    NodeExpr* left;
+    NodeExpr* right;
+};
 
 struct NodeBinExpr {
-    NodeBinExprAdd* add;
+    std::variant<NodeBinExprAdd*, NodeBinExprSub*, NodeBinExprMul*, NodeBinExprDiv*> var;
 };
 
 struct NodeTermIntLit {
@@ -28,8 +38,12 @@ struct NodeTermIdent {
     Token ident;
 };
 
+struct NodeTermParen {
+    NodeExpr* expr;
+};
+
 struct NodeTerm {
-    std::variant<NodeTermIntLit*, NodeTermIdent*> var;
+    std::variant<NodeTermIntLit*, NodeTermIdent*, NodeTermParen*> var;
 };
 
 struct NodeExpr {
@@ -56,9 +70,8 @@ struct NodeProg {
 class Parser {
 public:
     Parser(std::vector<Token> tokens);
-    std::optional<NodeBinExpr*> parseBinExpr();
     std::optional<NodeTerm*> parseTerm();
-    std::optional<NodeExpr*> parseExpr();
+    std::optional<NodeExpr*> parseExpr(int minPrec = 0);
     std::optional<NodeStmt*> parseStmt();
     std::optional<NodeProg> parseProg();
 private:

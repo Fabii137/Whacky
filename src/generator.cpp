@@ -10,8 +10,8 @@ Generator::Generator(NodeProg root): m_Prog(std::move(root)) {
 void Generator::generateTerm(const NodeTerm* term) {
     struct TermVisitor {
         Generator* generator;
-        void operator()(const NodeTermIntLit* termIntList) const {
-            generator->m_Output << "\tmov rax, " << termIntList->int_lit.value.value() << "\n";
+        void operator()(const NodeTermIntLit* termIntLit) const {
+            generator->m_Output << "\tmov rax, " << termIntLit->int_lit.value.value() << "\n";
             generator->push("rax");
         }
 
@@ -25,10 +25,65 @@ void Generator::generateTerm(const NodeTerm* term) {
                 exit(EXIT_FAILURE);
             }
         }
+
+        void operator()(const NodeTermParen* termParen) const {
+            generator->generateExpr(termParen->expr);
+        }
+
     };
 
     TermVisitor visitor({ .generator = this });
     std::visit(visitor, term->var);
+}
+
+void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
+    struct BinExprVisitor {
+        Generator* generator;
+        void operator()(const NodeBinExprAdd* binExprAdd) const {
+            generator->generateExpr(binExprAdd->right);
+            generator->generateExpr(binExprAdd->left);
+
+            generator->pop("rax");
+            generator->pop("rbx");
+            generator->m_Output << "\tadd rax, rbx\n";
+            generator->push("rax");
+        }
+
+        void operator()(const NodeBinExprSub* binExprSub) const {
+            generator->generateExpr(binExprSub->right);
+            generator->generateExpr(binExprSub->left);
+
+            generator->pop("rax");
+            generator->pop("rbx");
+            generator->m_Output << "\tsub rax, rbx\n";
+            generator->push("rax");
+        }
+
+        void operator()(const NodeBinExprMul* binExprMul) const {
+            generator->generateExpr(binExprMul->right);
+            generator->generateExpr(binExprMul->left);
+
+            generator->pop("rax");
+            generator->pop("rbx");
+            generator->m_Output << "\tmul rbx\n";
+            generator->push("rax");
+        }
+
+        void operator()(const NodeBinExprDiv* binExprDiv) const {
+            generator->generateExpr(binExprDiv->right);
+            generator->generateExpr(binExprDiv->left);
+
+            generator->pop("rax");
+            generator->pop("rbx");
+            generator->m_Output << "\tdiv rbx\n";
+            generator->push("rax");
+        }
+
+
+    };
+
+    BinExprVisitor visitor({ .generator = this });
+    std::visit(visitor, binExpr->var);
 }
 
 void Generator::generateExpr(const NodeExpr* expr) {
@@ -39,13 +94,7 @@ void Generator::generateExpr(const NodeExpr* expr) {
         }
 
         void operator()(const NodeBinExpr* binExpr) const {
-            generator->generateExpr(binExpr->add->left);
-            generator->generateExpr(binExpr->add->right);
-
-            generator->pop("rax");
-            generator->pop("rbx");
-            generator->m_Output << "\tadd rax, rbx\n";
-            generator->push("rax");
+            generator->generateBinExpr(binExpr);
         }
     };
 

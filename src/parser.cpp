@@ -20,38 +20,98 @@ std::optional<NodeTerm*> Parser::parseTerm() {
         NodeTerm* term = m_Allocator.alloc<NodeTerm>();
         term->var = termIdent;
         return term;
+    } else if (auto openParen = tryConsume(TokenType::open_paren)) {
+        auto expr = parseExpr();
+        if(!expr.has_value()) {
+            std::cerr << "Expected expression" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        tryConsume(TokenType::close_paren, "Expected ')'");
+        NodeTermParen* termParen = m_Allocator.alloc<NodeTermParen>();
+        termParen->expr = expr.value();
+
+        NodeTerm* term = m_Allocator.alloc<NodeTerm>();
+        term->var = termParen;
+        return term;
     } else {
         return {};
     }
 }
 
-std::optional<NodeExpr*> Parser::parseExpr() {
-    if(auto term = parseTerm()) {
-        if(tryConsume(TokenType::plus).has_value()) {
-            NodeBinExpr* binExpr = m_Allocator.alloc<NodeBinExpr>();
-            NodeBinExprAdd* binExprAdd = m_Allocator.alloc<NodeBinExprAdd>();
-            NodeExpr* leftExpr = m_Allocator.alloc<NodeExpr>();
-            leftExpr->var = term.value();
-            binExprAdd->left = leftExpr;
-            if(auto right = parseExpr()) {
-                binExprAdd->right = right.value();
-                binExpr->add = binExprAdd;
-
-                NodeExpr* expr = m_Allocator.alloc<NodeExpr>();
-                expr->var = binExpr;
-                return expr;
-            } else {
-                std::cerr << "Expected expression" << std::endl;
-                exit(EXIT_FAILURE);
-            }
-        } else {
-            NodeExpr* expr = m_Allocator.alloc<NodeExpr>();
-            expr->var = term.value();
-            return expr;
-        }
-    } else {
+std::optional<NodeExpr*> Parser::parseExpr(int minPrec /*=0*/) {
+    auto termLeft = parseTerm();
+    if(!termLeft.has_value()) {
         return {};
     }
+
+    auto exprLeft = m_Allocator.alloc<NodeExpr>();
+    exprLeft->var = termLeft.value();
+
+    while(true) {
+        std::optional<Token> currToken = peek();
+        std::optional<int> prec;
+        if(!currToken.has_value()) {
+            break;
+        }
+
+        prec = binPrec(currToken->type);
+        if(!prec.has_value() || prec.value() < minPrec) {
+            break;
+        }
+
+        Token op = consume();
+        int nextMinPrec = prec.value() + 1;
+        auto exprRight = parseExpr(nextMinPrec);
+        if(!exprRight.has_value()) {
+            std::cerr << "Unable to parse expression" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        auto binExpr = m_Allocator.alloc<NodeBinExpr>();
+        auto exprLeft2 = m_Allocator.alloc<NodeExpr>();
+
+        switch(op.type) {
+            case TokenType::plus: {
+                auto binExprAdd = m_Allocator.alloc<NodeBinExprAdd>();
+                exprLeft2->var = exprLeft->var;
+                binExprAdd->left = exprLeft2;
+                binExprAdd->right = exprRight.value();
+                binExpr->var = binExprAdd;
+                break;
+            }
+            case TokenType::minus: {
+                auto binExprSub = m_Allocator.alloc<NodeBinExprSub>();
+                exprLeft2->var = exprLeft->var;
+                binExprSub->left = exprLeft2;
+                binExprSub->right = exprRight.value();
+                binExpr->var = binExprSub;
+                break;
+            }
+            case TokenType::mul: {
+                auto binExprMul = m_Allocator.alloc<NodeBinExprMul>();
+                exprLeft2->var = exprLeft->var;
+                binExprMul->left = exprLeft2;
+                binExprMul->right = exprRight.value();
+                binExpr->var = binExprMul;
+                break;
+            }
+            case TokenType::div: {
+                auto binExprDiv = m_Allocator.alloc<NodeBinExprDiv>();
+                exprLeft2->var = exprLeft->var;
+                binExprDiv->left = exprLeft2;
+                binExprDiv->right = exprRight.value();
+                binExpr->var = binExprDiv;
+                break;
+            }
+            default:
+                break; 
+        }
+       
+        exprLeft->var = binExpr;
+    }
+
+    return exprLeft;
 }
 
 std::optional<NodeStmt*> Parser::parseStmt() {

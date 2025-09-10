@@ -10,7 +10,9 @@ enum class TokenType {
     eq,
 
     plus,
+    minus,
     mul,
+    div,
 
     open_paren,
     close_paren,
@@ -38,6 +40,19 @@ enum class TokenType {
 
     yell, // print
 };
+
+inline std::optional<int> binPrec(TokenType type) {
+    switch(type) {
+        case TokenType::plus:
+        case TokenType::minus:
+            return 0;
+        case TokenType::mul:
+        case TokenType::div:
+            return 1;
+        default:
+            return {};
+    }
+}
 
 struct Token {
     TokenType type;

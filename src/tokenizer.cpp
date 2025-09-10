@@ -47,9 +47,15 @@ std::vector<Token> Tokenizer::tokenize() {
         } else if (peek().value() == '+') {
             consume();
             tokens.push_back({ .type = TokenType::plus });
+        } else if (peek().value() == '-') {
+            consume();
+            tokens.push_back({ .type = TokenType::minus });
         } else if (peek().value() == '*') {
             consume();
             tokens.push_back({ .type = TokenType::mul });
+        } else if (peek().value() == '/') {
+            consume();
+            tokens.push_back({ .type = TokenType::div });
         } else if(std::isspace(peek().value())) {
             consume();
         } else {
