@@ -56,6 +56,12 @@ std::vector<Token> Tokenizer::tokenize() {
         } else if (peek().value() == '/') {
             consume();
             tokens.push_back({ .type = TokenType::fslash });
+        } else if (peek().value() == '{') {
+            consume();
+            tokens.push_back({ .type = TokenType::open_curly });
+        } else if (peek().value() == '}') {
+            consume();
+            tokens.push_back({ .type = TokenType::close_curly });
         } else if(std::isspace(peek().value())) {
             consume();
         } else {

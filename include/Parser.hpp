@@ -5,6 +5,7 @@
 #include "ArenaAllocator.hpp"
 
 struct NodeExpr;
+struct NodeStmt;
 
 struct NodeBinExprAdd {
     NodeExpr* left;
@@ -50,6 +51,10 @@ struct NodeExpr {
     std::variant<NodeTerm*, NodeBinExpr*> var;
 };
 
+struct NodeStmtScope {
+    std::vector<NodeStmt*> stmts;
+};
+
 struct NodeStmtBye {
     NodeExpr* expr;
 };
@@ -60,7 +65,7 @@ struct NodeStmtLet {
 };
 
 struct NodeStmt {
-    std::variant<NodeStmtBye*, NodeStmtLet*> var;
+    std::variant<NodeStmtBye*, NodeStmtLet*, NodeStmtScope*> var;
 };
 
 struct NodeProg {

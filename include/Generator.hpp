@@ -4,6 +4,15 @@
 #include <unordered_map>
 #include "Parser.hpp"
 
+struct Var {
+    size_t stackLoc;
+};
+
+struct Scope {
+    std::unordered_map<std::string, Var> vars;
+    size_t stackStart;
+};
+
 class Generator {
 public:
     Generator(NodeProg prog);
@@ -11,17 +20,19 @@ public:
     void generateBinExpr(const NodeBinExpr* binExpr);
     void generateExpr(const NodeExpr* expr);
     void generateStmt(const NodeStmt* stmt);
-    std::string generateProg();
+    std::string generateProg(); 
 private:
     void push(const std::string& reg);
     void pop(const std::string& reg);
-private:
-    struct Var {
-        size_t stackLoc;
-    };
 
+    void enterScope();
+    void leaveScope();
+    Var* lookupVar(const std::string& name);
+    void declareVar(const std::string& name, Var var);
+private:
     const NodeProg m_Prog;
     std::stringstream m_Output;
     size_t m_StackSize = 0;
-    std::unordered_map<std::string, Var> m_Vars {};
+    std::vector<Scope> m_Scopes {};
+
 };

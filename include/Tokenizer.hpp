@@ -16,6 +16,8 @@ enum class TokenType {
 
     open_paren,
     close_paren,
+    open_curly,
+    close_curly,
 
 
     bye, // exit()

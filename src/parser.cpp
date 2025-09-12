@@ -148,11 +148,22 @@ std::optional<NodeStmt*> Parser::parseStmt() {
             std::cerr << "Invalid expression" << std::endl;
             exit(EXIT_FAILURE);
         }
-
         tryConsume(TokenType::semi, "Expected ';'");
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
         stmt->var = stmtLet;
+        return stmt;
+    } else if (auto open_curly = tryConsume(TokenType::open_curly)) {
+        NodeStmtScope* stmtScope = m_Allocator.alloc<NodeStmtScope>();
+        while(auto stmt = parseStmt()) {
+            std::cout << "statement" << std::endl;
+            stmtScope->stmts.push_back(stmt.value());
+        }
+
+        tryConsume(TokenType::close_curly, "Expected '}'");
+
+        NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
+        stmt->var = stmtScope;  
         return stmt;
     } else {
         return {};

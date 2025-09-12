@@ -4,6 +4,7 @@
 [Stmt] -> { 
 	bye([Expr])
 	let ident = [Expr]
+    {[Stmt]*}
 }
 
 [Expr] -> {

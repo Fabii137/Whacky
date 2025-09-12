@@ -16,14 +16,11 @@ void Generator::generateTerm(const NodeTerm* term) {
         }
 
         void operator()(const NodeTermIdent* termIdent) const {
-            if(const auto& varEntry = generator->m_Vars.find(termIdent->ident.value.value()); varEntry != generator->m_Vars.end()) {
-                std::stringstream offset;
-                offset << "QWORD [rsp + " << (generator->m_StackSize - varEntry->second.stackLoc-1) * 8 << "]";
-                generator->push(offset.str());
-            } else {
-                std::cerr << "Undeclared identifier: " << termIdent->ident.value.value() << std::endl;
-                exit(EXIT_FAILURE);
-            }
+            Var* var = generator->lookupVar(termIdent->ident.value.value());
+            std::stringstream offset;
+            offset << "QWORD [rsp + " << (generator->m_StackSize - var->stackLoc-1) * 8 << "]";
+            generator->push(offset.str());
+            
         }
 
         void operator()(const NodeTermParen* termParen) const {
@@ -78,8 +75,6 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
             generator->m_Output << "\tdiv rbx\n";
             generator->push("rax");
         }
-
-
     };
 
     BinExprVisitor visitor({ .generator = this });
@@ -113,14 +108,18 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         }
 
         void operator()(const NodeStmtLet* stmtLet) {
-            if(generator->m_Vars.contains(stmtLet->ident.value.value())) {
-                std::cerr << "Identifier already used: " << stmtLet->ident.value.value() << std::endl;
-                exit(EXIT_FAILURE);
+            generator->declareVar(stmtLet->ident.value.value(),  Var { .stackLoc = generator->m_StackSize });
+            generator->generateExpr(stmtLet->expr);
+        }
+
+        void operator()(const NodeStmtScope* stmtScope) const {
+            generator->enterScope();
+            
+            for(const NodeStmt* stmt : stmtScope->stmts) {
+                generator->generateStmt(stmt);
             }
 
-            generator->m_Vars.insert({ stmtLet->ident.value.value(), Var { .stackLoc = generator->m_StackSize } });
-            generator->generateExpr(stmtLet->expr);
-
+            generator->leaveScope();
         }
     };
 
@@ -130,6 +129,7 @@ void Generator::generateStmt(const NodeStmt* stmt) {
 
 std::string Generator::generateProg() {
     m_Output << "global _start\n_start:\n";
+    enterScope();
 
     for(const NodeStmt* stmt : m_Prog.stmts) {
         generateStmt(stmt);
@@ -149,4 +149,37 @@ void Generator::push(const std::string& reg) {
 void Generator::pop(const std::string& reg) {
     m_Output << "\tpop " << reg << "\n";
     m_StackSize--;
+}
+
+void Generator::enterScope() {
+    m_Scopes.emplace_back(Scope{{}, m_StackSize});
+}
+
+void Generator::leaveScope() {
+    Scope scope = m_Scopes.back();
+    m_Scopes.pop_back();
+    
+    size_t popCount = m_StackSize - scope.stackStart;
+    m_Output << "\tadd rsp, " << popCount * 8 << std::endl;
+    m_StackSize -= popCount;
+}
+
+Var* Generator::lookupVar(const std::string& name) {
+    auto& currentScope = m_Scopes.back().vars;
+    auto found = currentScope.find(name);
+    if (found == currentScope.end()) {
+        std::cerr << "Undeclared identifier: " << name << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    
+    return &found->second;
+}
+
+void Generator::declareVar(const std::string& name, Var var) {
+    auto& currentScope = m_Scopes.back().vars;
+    if (currentScope.contains(name)) {
+        std::cerr << "Identifier already declared in this scope: " << name << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    currentScope.insert({name, var});
 }
