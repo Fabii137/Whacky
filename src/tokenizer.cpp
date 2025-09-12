@@ -52,10 +52,10 @@ std::vector<Token> Tokenizer::tokenize() {
             tokens.push_back({ .type = TokenType::minus });
         } else if (peek().value() == '*') {
             consume();
-            tokens.push_back({ .type = TokenType::mul });
+            tokens.push_back({ .type = TokenType::star });
         } else if (peek().value() == '/') {
             consume();
-            tokens.push_back({ .type = TokenType::div });
+            tokens.push_back({ .type = TokenType::fslash });
         } else if(std::isspace(peek().value())) {
             consume();
         } else {

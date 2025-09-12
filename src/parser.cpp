@@ -88,7 +88,7 @@ std::optional<NodeExpr*> Parser::parseExpr(int minPrec /*=0*/) {
                 binExpr->var = binExprSub;
                 break;
             }
-            case TokenType::mul: {
+            case TokenType::star: {
                 auto binExprMul = m_Allocator.alloc<NodeBinExprMul>();
                 exprLeft2->var = exprLeft->var;
                 binExprMul->left = exprLeft2;
@@ -96,7 +96,7 @@ std::optional<NodeExpr*> Parser::parseExpr(int minPrec /*=0*/) {
                 binExpr->var = binExprMul;
                 break;
             }
-            case TokenType::div: {
+            case TokenType::fslash: {
                 auto binExprDiv = m_Allocator.alloc<NodeBinExprDiv>();
                 exprLeft2->var = exprLeft->var;
                 binExprDiv->left = exprLeft2;

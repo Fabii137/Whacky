@@ -11,8 +11,8 @@ enum class TokenType {
 
     plus,
     minus,
-    mul,
-    div,
+    star,
+    fslash,
 
     open_paren,
     close_paren,
@@ -46,8 +46,8 @@ inline std::optional<int> binPrec(TokenType type) {
         case TokenType::plus:
         case TokenType::minus:
             return 0;
-        case TokenType::mul:
-        case TokenType::div:
+        case TokenType::star:
+        case TokenType::fslash:
             return 1;
         default:
             return {};
