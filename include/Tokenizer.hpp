@@ -43,7 +43,7 @@ enum class TokenType {
     yell, // print
 };
 
-inline std::optional<int> binPrec(TokenType type) {
+inline std::optional<int> binPrec(const TokenType type) {
     switch(type) {
         case TokenType::plus:
         case TokenType::minus:
@@ -67,7 +67,7 @@ public:
     std::vector<Token> tokenize();
 
 private:
-    std::optional<char> peek(int offset = 0) const;
+    std::optional<char> peek(size_t offset = 0) const;
     char consume();
 private:
     size_t m_Index = 0;

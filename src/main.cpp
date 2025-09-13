@@ -33,8 +33,8 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
     
-    Generator generator(std::move(prog.value()));
     {
+        Generator generator(std::move(prog.value()));
         std::fstream out("out.asm", std::ios::out);
         out << generator.generateProg();
     }

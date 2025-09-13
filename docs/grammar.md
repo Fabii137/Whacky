@@ -4,6 +4,11 @@
 [Stmt] -> { 
 	bye([Expr])
 	let ident = [Expr]
+    if ([Expr]) [Scope]
+    [Scope]
+}
+
+[Scope] -> {
     {[Stmt]*}
 }
 

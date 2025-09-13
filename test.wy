@@ -1,9 +1,9 @@
 let x = 12 / (2 + 2 * 3) - 1;
 let y = x + 5;
+let z = 1;
 
-{
-    let z = 10;
+maybe (z) {
     bye(z);
 }
 
-bye(y);
+bye(z);

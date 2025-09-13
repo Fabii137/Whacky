@@ -21,6 +21,9 @@ std::vector<Token> Tokenizer::tokenize() {
             } else if (buf == "let") {
                 tokens.push_back({ .type = TokenType::let});
                 buf.clear();
+            } else if (buf == "maybe") {
+                tokens.push_back({ .type = TokenType::maybe });
+                buf.clear();
             } else {
                 tokens.push_back({ .type = TokenType::ident, .value = buf });
                 buf.clear();
@@ -74,7 +77,7 @@ std::vector<Token> Tokenizer::tokenize() {
     return tokens;
 }
 
-std::optional<char> Tokenizer::peek(int offset /*=0*/) const {
+std::optional<char> Tokenizer::peek(size_t offset /*=0*/) const {
     if(m_Index + offset >= m_Src.size()) {
         return {};
     }

@@ -51,8 +51,13 @@ struct NodeExpr {
     std::variant<NodeTerm*, NodeBinExpr*> var;
 };
 
-struct NodeStmtScope {
+struct NodeScope {
     std::vector<NodeStmt*> stmts;
+};
+
+struct NodeStmtMaybe {
+    NodeExpr* expr;
+    NodeScope* scope;
 };
 
 struct NodeStmtBye {
@@ -65,7 +70,7 @@ struct NodeStmtLet {
 };
 
 struct NodeStmt {
-    std::variant<NodeStmtBye*, NodeStmtLet*, NodeStmtScope*> var;
+    std::variant<NodeStmtBye*, NodeStmtLet*, NodeScope*, NodeStmtMaybe*> var;
 };
 
 struct NodeProg {
@@ -76,14 +81,15 @@ class Parser {
 public:
     Parser(std::vector<Token> tokens);
     std::optional<NodeTerm*> parseTerm();
-    std::optional<NodeExpr*> parseExpr(int minPrec = 0);
+    std::optional<NodeExpr*> parseExpr(const int minPrec = 0);
+    std::optional<NodeScope*> parseScope();
     std::optional<NodeStmt*> parseStmt();
     std::optional<NodeProg> parseProg();
 private:
-    std::optional<Token> peek(int offset = 0) const;
+    std::optional<Token> peek(const size_t offset = 0) const;
     Token consume();
-    Token tryConsume(TokenType type, const std::string& errMessage);
-    std::optional<Token> tryConsume(TokenType type);
+    Token tryConsume(const TokenType type, const std::string& errMessage);
+    std::optional<Token> tryConsume(const TokenType type);
 private:
     size_t m_Index = 0;
     const std::vector<Token> m_Tokens;
