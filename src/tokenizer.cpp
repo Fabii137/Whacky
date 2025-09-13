@@ -35,6 +35,23 @@ std::vector<Token> Tokenizer::tokenize() {
             }
             tokens.push_back({ .type = TokenType::int_lit, .value = buf });
             buf.clear();
+        } else if(peek().value() == '/' && peek(1).has_value() && peek(1).value() == '/') {
+            consume();
+            consume();
+            while (peek().has_value() && peek().value() != '\n') {
+                consume();
+            }
+        } else if(peek().value() == '/' && peek(1).has_value() && peek(1).value() == '*') {
+            consume();
+            consume();
+            while (peek().has_value()) {
+                if (peek().value() == '*' && peek(1).has_value() && peek(1).value() == '/') {
+                    consume();
+                    consume();
+                    break;
+                }
+                consume();
+            }
         } else if (peek().value() == '(') {
             consume();
             tokens.push_back({ .type = TokenType::open_paren });
