@@ -1,11 +1,11 @@
-let x = 12 / (2 + 2 * 3) - 1;
-let y = x + 5;
-let z = 0;
+gimme x = 12 / (2 + 2 * 3) - 1;
+gimme y = x + 5;
+gimme z = 0;
 
 // test1
 
 maybe (1) {
-    let i = 1;
+    gimme i = 1;
 } but (0) {
     bye(68);
 } nah {

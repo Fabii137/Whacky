@@ -18,8 +18,8 @@ std::vector<Token> Tokenizer::tokenize() {
             if(buf == "bye") {
                 tokens.push_back({ .type = TokenType::bye });
                 buf.clear();
-            } else if (buf == "let") {
-                tokens.push_back({ .type = TokenType::let});
+            } else if (buf == "gimme") {
+                tokens.push_back({ .type = TokenType::gimme});
                 buf.clear();
             } else if (buf == "maybe") {
                 tokens.push_back({ .type = TokenType::maybe });

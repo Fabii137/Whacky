@@ -146,9 +146,9 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.m_Output << "\tsyscall\n";
         }
 
-        void operator()(const NodeStmtLet* let) {
-            generator.declareVar(let->ident.value.value(),  Var { .stackLoc = generator.m_StackSize });
-            generator.generateExpr(let->expr);
+        void operator()(const NodeStmtLet* gimme) {
+            generator.declareVar(gimme->ident.value.value(),  Var { .stackLoc = generator.m_StackSize });
+            generator.generateExpr(gimme->expr);
         }
 
         void operator()(const NodeScope* scope) const {

@@ -198,17 +198,17 @@ std::optional<NodeStmt*> Parser::parseStmt() {
     }
     
     if (
-        peek().has_value() && peek().value().type == TokenType::let 
+        peek().has_value() && peek().value().type == TokenType::gimme 
         && peek(1).has_value() && peek(1).value().type == TokenType::ident 
         && peek(2).has_value() && peek(2).value().type == TokenType::eq
     ) {
-        consume(); // let
-        NodeStmtLet* let = m_Allocator.alloc<NodeStmtLet>();
-        let->ident = consume();
+        consume(); // gimme
+        NodeStmtLet* gimme = m_Allocator.alloc<NodeStmtLet>();
+        gimme->ident = consume();
         consume(); // eq
 
         if(const auto expr = parseExpr()) {
-            let->expr = expr.value();
+            gimme->expr = expr.value();
         } else {
             std::cerr << "Invalid expression" << std::endl;
             exit(EXIT_FAILURE);
@@ -216,7 +216,7 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         tryConsume(TokenType::semi, "Expected ';'");
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
-        stmt->var = let;
+        stmt->var = gimme;
         return stmt;
     }
     

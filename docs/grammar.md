@@ -3,7 +3,7 @@
 
 [Stmt] -> { 
 	bye([Expr])
-	let ident = [Expr]
+	gimme ident = [Expr]
     maybe ([Expr])[Scope][MaybePred]
     [Scope]
 }

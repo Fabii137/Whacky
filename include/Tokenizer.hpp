@@ -5,7 +5,7 @@
 #include <vector>
 
 enum class TokenType {
-    let,
+    gimme, // let
     ident,
     eq,
 
