@@ -10,21 +10,21 @@ Generator::Generator(NodeProg root): m_Prog(std::move(root)) {
 void Generator::generateTerm(const NodeTerm* term) {
     struct TermVisitor {
         Generator& generator;
-        void operator()(const NodeTermIntLit* termIntLit) const {
-            generator.m_Output << "\tmov rax, " << termIntLit->int_lit.value.value() << "\n";
+        void operator()(const NodeTermIntLit* intLit) const {
+            generator.m_Output << "\tmov rax, " << intLit->int_lit.value.value() << "\n";
             generator.push("rax");
         }
 
-        void operator()(const NodeTermIdent* termIdent) const {
-            Var* var = generator.lookupVar(termIdent->ident.value.value());
+        void operator()(const NodeTermIdent* ident) const {
+            Var* var = generator.lookupVar(ident->ident.value.value());
             std::stringstream offset;
             offset << "QWORD [rsp + " << (generator.m_StackSize - var->stackLoc-1) * 8 << "]";
             generator.push(offset.str());
             
         }
 
-        void operator()(const NodeTermParen* termParen) const {
-            generator.generateExpr(termParen->expr);
+        void operator()(const NodeTermParen* paren) const {
+            generator.generateExpr(paren->expr);
         }
 
     };
@@ -36,9 +36,9 @@ void Generator::generateTerm(const NodeTerm* term) {
 void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
     struct BinExprVisitor {
         Generator& generator;
-        void operator()(const NodeBinExprAdd* binExprAdd) const {
-            generator.generateExpr(binExprAdd->right);
-            generator.generateExpr(binExprAdd->left);
+        void operator()(const NodeBinExprAdd* add) const {
+            generator.generateExpr(add->right);
+            generator.generateExpr(add->left);
 
             generator.pop("rax");
             generator.pop("rbx");
@@ -46,9 +46,9 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
             generator.push("rax");
         }
 
-        void operator()(const NodeBinExprSub* binExprSub) const {
-            generator.generateExpr(binExprSub->right);
-            generator.generateExpr(binExprSub->left);
+        void operator()(const NodeBinExprSub* sub) const {
+            generator.generateExpr(sub->right);
+            generator.generateExpr(sub->left);
 
             generator.pop("rax");
             generator.pop("rbx");
@@ -56,9 +56,9 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
             generator.push("rax");
         }
 
-        void operator()(const NodeBinExprMul* binExprMul) const {
-            generator.generateExpr(binExprMul->right);
-            generator.generateExpr(binExprMul->left);
+        void operator()(const NodeBinExprMul* mul) const {
+            generator.generateExpr(mul->right);
+            generator.generateExpr(mul->left);
 
             generator.pop("rax");
             generator.pop("rbx");
@@ -66,9 +66,9 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
             generator.push("rax");
         }
 
-        void operator()(const NodeBinExprDiv* binExprDiv) const {
-            generator.generateExpr(binExprDiv->right);
-            generator.generateExpr(binExprDiv->left);
+        void operator()(const NodeBinExprDiv* div) const {
+            generator.generateExpr(div->right);
+            generator.generateExpr(div->left);
 
             generator.pop("rax");
             generator.pop("rbx");
@@ -107,35 +107,69 @@ void Generator::generateScope(const NodeScope* scope) {
     leaveScope();
 }
 
-void Generator::generateStmt(const NodeStmt* stmt) {
-    struct StmtVisitor {
+void Generator::generateMaybePred(const NodeMaybePred* pred, const std::string& endLabel) {
+    struct PredVisitor {
         Generator& generator;
-        void operator()(const NodeStmtBye* stmtBye) const {
-            generator.generateExpr(stmtBye->expr);
-            generator.m_Output << "\tmov rax, 60\n";
-            generator.pop("rdi");
-            generator.m_Output << "\tsyscall\n";
-        }
-
-        void operator()(const NodeStmtLet* stmtLet) {
-            generator.declareVar(stmtLet->ident.value.value(),  Var { .stackLoc = generator.m_StackSize });
-            generator.generateExpr(stmtLet->expr);
-        }
-
-        void operator()(const NodeScope* scope) const {
-            generator.generateScope(scope);
-        }
-
-        void operator()(const NodeStmtMaybe* stmtMaybe) {
-            generator.generateExpr(stmtMaybe->expr);
+        const std::string& endLabel;
+        void operator()(const NodeMaybePredBut* but) const {
+            generator.generateExpr(but->expr);
             generator.pop("rax");
 
             const std::string label = generator.createLabel();
 
             generator.m_Output << "\ttest rax, rax\n";
             generator.m_Output << "\tjz " << label << "\n";
-            generator.generateScope(stmtMaybe->scope);
+            generator.generateScope(but->scope);
+            generator.m_Output << "\tjmp " << endLabel << "\n";
+            if (but->pred.has_value()) {
+                generator.m_Output << label << ":\n";
+                generator.generateMaybePred(but->pred.value(), endLabel);
+            }
+        }
+
+        void operator()(const NodeMaybePredNah* nah) const {
+            generator.generateScope(nah->scope);
+        }
+    };
+
+    PredVisitor visitor({ .generator = *this, .endLabel = endLabel });
+    std::visit(visitor, pred->var);
+}
+
+void Generator::generateStmt(const NodeStmt* stmt) {
+    struct StmtVisitor {
+        Generator& generator;
+        void operator()(const NodeStmtBye* bye) const {
+            generator.generateExpr(bye->expr);
+            generator.m_Output << "\tmov rax, 60\n";
+            generator.pop("rdi");
+            generator.m_Output << "\tsyscall\n";
+        }
+
+        void operator()(const NodeStmtLet* let) {
+            generator.declareVar(let->ident.value.value(),  Var { .stackLoc = generator.m_StackSize });
+            generator.generateExpr(let->expr);
+        }
+
+        void operator()(const NodeScope* scope) const {
+            generator.generateScope(scope);
+        }
+
+        void operator()(const NodeStmtMaybe* maybe) {
+            generator.generateExpr(maybe->expr);
+            generator.pop("rax");
+
+            const std::string label = generator.createLabel();
+
+            generator.m_Output << "\ttest rax, rax\n";
+            generator.m_Output << "\tjz " << label << "\n";
+            generator.generateScope(maybe->scope);
             generator.m_Output << label << ":\n";
+            if(maybe->pred.has_value()) {
+                const std::string endLabel = generator.createLabel();
+                generator.generateMaybePred(maybe->pred.value(), endLabel);
+                generator.m_Output << endLabel << ":\n";
+            }   
         }
     };
 

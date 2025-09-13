@@ -6,6 +6,7 @@
 
 struct NodeExpr;
 struct NodeStmt;
+struct NodeMaybePred;
 
 struct NodeBinExprAdd {
     NodeExpr* left;
@@ -55,9 +56,24 @@ struct NodeScope {
     std::vector<NodeStmt*> stmts;
 };
 
+struct NodeMaybePredBut {
+    NodeExpr* expr;
+    NodeScope* scope;
+    std::optional<NodeMaybePred*> pred;
+};
+
+struct NodeMaybePredNah {
+    NodeScope* scope;
+};
+
+struct NodeMaybePred {
+    std::variant<NodeMaybePredBut*, NodeMaybePredNah*> var;
+};
+
 struct NodeStmtMaybe {
     NodeExpr* expr;
     NodeScope* scope;
+    std::optional<NodeMaybePred*> pred;
 };
 
 struct NodeStmtBye {
@@ -83,6 +99,7 @@ public:
     std::optional<NodeTerm*> parseTerm();
     std::optional<NodeExpr*> parseExpr(const int minPrec = 0);
     std::optional<NodeScope*> parseScope();
+    std::optional<NodeMaybePred*> parseMaybePred();
     std::optional<NodeStmt*> parseStmt();
     std::optional<NodeProg> parseProg();
 private:

@@ -24,6 +24,12 @@ std::vector<Token> Tokenizer::tokenize() {
             } else if (buf == "maybe") {
                 tokens.push_back({ .type = TokenType::maybe });
                 buf.clear();
+            } else if (buf == "but") {
+                tokens.push_back({ .type = TokenType::but });
+                buf.clear();
+            } else if (buf == "nah") {
+                tokens.push_back({ .type = TokenType::nah });
+                buf.clear();
             } else {
                 tokens.push_back({ .type = TokenType::ident, .value = buf });
                 buf.clear();

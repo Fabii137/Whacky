@@ -4,12 +4,18 @@
 [Stmt] -> { 
 	bye([Expr])
 	let ident = [Expr]
-    if ([Expr]) [Scope]
+    maybe ([Expr])[Scope][MaybePred]
     [Scope]
 }
 
 [Scope] -> {
-    {[Stmt]*}
+   {[Stmt]*}
+}
+
+[MaybePred] -> {
+    but([Expr])[Scope][MaybePred]
+    nah[Scope]
+    ε
 }
 
 [Expr] -> {

@@ -20,6 +20,7 @@ public:
     void generateBinExpr(const NodeBinExpr* binExpr);
     void generateExpr(const NodeExpr* expr);
     void generateScope(const NodeScope* scope);
+    void generateMaybePred(const NodeMaybePred* pred, const std::string& endLabel);
     void generateStmt(const NodeStmt* stmt);
     std::string generateProg(); 
 private:

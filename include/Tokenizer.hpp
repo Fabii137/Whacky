@@ -19,11 +19,10 @@ enum class TokenType {
     open_curly,
     close_curly,
 
-
-    bye, // exit()
+    bye, // exit
     semi,
 
-    int_lit, // int
+    int_lit,
     nothin, // void
     vibes, // bool
 
@@ -31,7 +30,9 @@ enum class TokenType {
     gimmeback, // return
 
     maybe, // if
+    but,// else if
     nah, // else
+
     keepgoing, // while
     roundandround, // for
 

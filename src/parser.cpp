@@ -77,35 +77,35 @@ std::optional<NodeExpr*> Parser::parseExpr(const int minPrec /*=0*/) {
 
         switch(type) {
             case TokenType::plus: {
-                auto binExprAdd = m_Allocator.alloc<NodeBinExprAdd>();
+                auto add = m_Allocator.alloc<NodeBinExprAdd>();
                 exprLeft2->var = exprLeft->var;
-                binExprAdd->left = exprLeft2;
-                binExprAdd->right = exprRight.value();
-                binExpr->var = binExprAdd;
+                add->left = exprLeft2;
+                add->right = exprRight.value();
+                binExpr->var = add;
                 break;
             }
             case TokenType::minus: {
-                auto binExprSub = m_Allocator.alloc<NodeBinExprSub>();
+                auto sub = m_Allocator.alloc<NodeBinExprSub>();
                 exprLeft2->var = exprLeft->var;
-                binExprSub->left = exprLeft2;
-                binExprSub->right = exprRight.value();
-                binExpr->var = binExprSub;
+                sub->left = exprLeft2;
+                sub->right = exprRight.value();
+                binExpr->var = sub;
                 break;
             }
             case TokenType::star: {
-                auto binExprMul = m_Allocator.alloc<NodeBinExprMul>();
+                auto mul = m_Allocator.alloc<NodeBinExprMul>();
                 exprLeft2->var = exprLeft->var;
-                binExprMul->left = exprLeft2;
-                binExprMul->right = exprRight.value();
-                binExpr->var = binExprMul;
+                mul->left = exprLeft2;
+                mul->right = exprRight.value();
+                binExpr->var = mul;
                 break;
             }
             case TokenType::fslash: {
-                auto binExprDiv = m_Allocator.alloc<NodeBinExprDiv>();
+                auto div = m_Allocator.alloc<NodeBinExprDiv>();
                 exprLeft2->var = exprLeft->var;
-                binExprDiv->left = exprLeft2;
-                binExprDiv->right = exprRight.value();
-                binExpr->var = binExprDiv;
+                div->left = exprLeft2;
+                div->right = exprRight.value();
+                binExpr->var = div;
                 break;
             }
             default:
@@ -133,13 +133,57 @@ std::optional<NodeScope*> Parser::parseScope() {
     return scope;
 }
 
+std::optional<NodeMaybePred*> Parser::parseMaybePred() {
+    if(tryConsume(TokenType::but)) {
+        tryConsume(TokenType::open_paren, "Expected '('");
+        const auto but = m_Allocator.alloc<NodeMaybePredBut>();
+        if(const auto expr = parseExpr()) {
+            but->expr = expr.value();
+        } else {
+            std::cerr << "Expected expression" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        tryConsume(TokenType::close_paren, "Expected ')'");
+
+        if(const auto scope = parseScope()) {
+            but->scope = scope.value();
+        
+        } else {
+            std::cerr << "Expected scope" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        but->pred = parseMaybePred();
+        const auto pred = m_Allocator.alloc<NodeMaybePred>();
+        pred->var = but;
+        return pred;
+    }
+
+    if(tryConsume(TokenType::nah)) {
+        const auto nah = m_Allocator.alloc<NodeMaybePredNah>();
+        if(const auto scope = parseScope()) {
+            nah->scope = scope.value();
+        } else {
+            std::cerr << "Expected scope" << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        const auto pred = m_Allocator.alloc<NodeMaybePred>();
+        pred->var = nah;
+        return pred;
+    }
+
+    return {};
+}
+
 std::optional<NodeStmt*> Parser::parseStmt() {
     if(peek().has_value() && peek().value().type == TokenType::bye && peek(1).has_value() && peek(1).value().type == TokenType::open_paren) {
         consume(); // bye
         consume(); // open paren
-        NodeStmtBye* stmtBye = m_Allocator.alloc<NodeStmtBye>();
+        NodeStmtBye* bye = m_Allocator.alloc<NodeStmtBye>();
         if(const auto expr = parseExpr()) {
-            stmtBye->expr = expr.value();
+            bye->expr = expr.value();
         } else {
             std::cerr << "Invalid expression" << std::endl;
             exit(EXIT_FAILURE);
@@ -149,7 +193,7 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         tryConsume(TokenType::semi, "Expected ';'");
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
-        stmt->var = stmtBye;
+        stmt->var = bye;
         return stmt;
     }
     
@@ -159,12 +203,12 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         && peek(2).has_value() && peek(2).value().type == TokenType::eq
     ) {
         consume(); // let
-        NodeStmtLet* stmtLet = m_Allocator.alloc<NodeStmtLet>();
-        stmtLet->ident = consume();
+        NodeStmtLet* let = m_Allocator.alloc<NodeStmtLet>();
+        let->ident = consume();
         consume(); // eq
 
         if(const auto expr = parseExpr()) {
-            stmtLet->expr = expr.value();
+            let->expr = expr.value();
         } else {
             std::cerr << "Invalid expression" << std::endl;
             exit(EXIT_FAILURE);
@@ -172,7 +216,7 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         tryConsume(TokenType::semi, "Expected ';'");
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
-        stmt->var = stmtLet;
+        stmt->var = let;
         return stmt;
     }
     
@@ -187,11 +231,11 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         exit(EXIT_FAILURE);
     }
     
-    if (auto maybe = tryConsume(TokenType::maybe)) {
+    if (tryConsume(TokenType::maybe)) {
         tryConsume(TokenType::open_paren, "Expected '('");
-        NodeStmtMaybe* stmtMaybe = m_Allocator.alloc<NodeStmtMaybe>();
+        NodeStmtMaybe* maybe = m_Allocator.alloc<NodeStmtMaybe>();
         if(const auto expr = parseExpr()) {
-            stmtMaybe->expr = expr.value();
+            maybe->expr = expr.value();
         } else {
             std::cerr << "Invalid expression" << std::endl;
             exit(EXIT_FAILURE);
@@ -199,14 +243,16 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         tryConsume(TokenType::close_paren, "Expected ')'");
 
         if(const auto scope = parseScope()) {
-            stmtMaybe->scope = scope.value();
+            maybe->scope = scope.value();
         } else {
             std::cerr << "Invalid scope" << std::endl;
             exit(EXIT_FAILURE);
         }
 
+        maybe->pred = parseMaybePred();
+
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
-        stmt->var = stmtMaybe;
+        stmt->var = maybe;
         return stmt;
     }
 
