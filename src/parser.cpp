@@ -156,7 +156,6 @@ std::optional<NodeStmt*> Parser::parseStmt() {
     } else if (auto open_curly = tryConsume(TokenType::open_curly)) {
         NodeStmtScope* stmtScope = m_Allocator.alloc<NodeStmtScope>();
         while(auto stmt = parseStmt()) {
-            std::cout << "statement" << std::endl;
             stmtScope->stmts.push_back(stmt.value());
         }
 

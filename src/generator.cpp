@@ -164,15 +164,16 @@ void Generator::leaveScope() {
     m_StackSize -= popCount;
 }
 
-Var* Generator::lookupVar(const std::string& name) {
-    auto& currentScope = m_Scopes.back().vars;
-    auto found = currentScope.find(name);
-    if (found == currentScope.end()) {
-        std::cerr << "Undeclared identifier: " << name << std::endl;
-        exit(EXIT_FAILURE);
+Var* Generator::lookupVar(const std::string& name) {    
+    for (auto it = m_Scopes.rbegin(); it != m_Scopes.rend(); it++) {
+        auto found = it->vars.find(name);
+        if(found != it->vars.end()) {
+            return &found->second;
+        }
     }
-    
-    return &found->second;
+
+    std::cerr << "Undeclared identifier: " << name << std::endl;
+    exit(EXIT_FAILURE);
 }
 
 void Generator::declareVar(const std::string& name, Var var) {
