@@ -80,13 +80,18 @@ struct NodeStmtBye {
     NodeExpr* expr;
 };
 
-struct NodeStmtLet {
+struct NodeStmtGimme {
+    Token ident;
+    NodeExpr* expr;
+};
+
+struct NodeStmtAssignment {
     Token ident;
     NodeExpr* expr;
 };
 
 struct NodeStmt {
-    std::variant<NodeStmtBye*, NodeStmtLet*, NodeScope*, NodeStmtMaybe*> var;
+    std::variant<NodeStmtBye*, NodeStmtGimme*, NodeScope*, NodeStmtMaybe*, NodeStmtAssignment*> var;
 };
 
 struct NodeProg {

@@ -4,6 +4,7 @@
 [Stmt] -> { 
 	bye([Expr])
 	gimme ident = [Expr]
+    ident = [Expr]
     maybe ([Expr])[Scope][MaybePred]
     [Scope]
 }

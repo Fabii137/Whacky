@@ -1,6 +1,7 @@
 #include "Generator.hpp"
 
 #include <iostream>
+#include <format>
 #include <assert.h>
 
 Generator::Generator(NodeProg root): m_Prog(std::move(root)) {
@@ -17,9 +18,8 @@ void Generator::generateTerm(const NodeTerm* term) {
 
         void operator()(const NodeTermIdent* ident) const {
             Var* var = generator.lookupVar(ident->ident.value.value());
-            std::stringstream offset;
-            offset << "QWORD [rsp + " << (generator.m_StackSize - var->stackLoc-1) * 8 << "]";
-            generator.push(offset.str());
+            std::string offset = std::format("qword [rsp + {}]", (generator.m_StackSize - var->stackLoc-1) * 8);
+            generator.push(offset);
             
         }
 
@@ -131,7 +131,6 @@ void Generator::generateMaybePred(const NodeMaybePred* pred, const std::string& 
             generator.generateScope(nah->scope);
         }
     };
-
     PredVisitor visitor({ .generator = *this, .endLabel = endLabel });
     std::visit(visitor, pred->var);
 }
@@ -146,16 +145,25 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.m_Output << "\tsyscall\n";
         }
 
-        void operator()(const NodeStmtLet* gimme) {
+        void operator()(const NodeStmtGimme* gimme) const {
             generator.declareVar(gimme->ident.value.value(),  Var { .stackLoc = generator.m_StackSize });
             generator.generateExpr(gimme->expr);
+        }
+
+        void operator()(const NodeStmtAssignment* assignment) const {
+            Var* var = generator.lookupVar(assignment->ident.value.value());
+
+            generator.generateExpr(assignment->expr);
+            generator.pop("rax");
+
+            generator.m_Output << std::format("\tmov [rsp + {}], rax\n", (generator.m_StackSize - var->stackLoc-1) * 8);
         }
 
         void operator()(const NodeScope* scope) const {
             generator.generateScope(scope);
         }
 
-        void operator()(const NodeStmtMaybe* maybe) {
+        void operator()(const NodeStmtMaybe* maybe) const {
             generator.generateExpr(maybe->expr);
             generator.pop("rax");
 
@@ -164,15 +172,19 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.m_Output << "\ttest rax, rax\n";
             generator.m_Output << "\tjz " << label << "\n";
             generator.generateScope(maybe->scope);
-            generator.m_Output << label << ":\n";
+                
+            
             if(maybe->pred.has_value()) {
-                const std::string endLabel = generator.createLabel();
+                const std::string& endLabel = generator.createLabel();
+                generator.m_Output << "\tjmp " << endLabel << "\n";
+                generator.m_Output << label << ":\n";
                 generator.generateMaybePred(maybe->pred.value(), endLabel);
                 generator.m_Output << endLabel << ":\n";
-            }   
+            } else {
+                generator.m_Output << label << ":\n";
+            }
         }
     };
-
     StmtVisitor visitor({ .generator = *this });
     std::visit(visitor, stmt->var);
 }
@@ -211,7 +223,7 @@ void Generator::leaveScope() {
     
     const size_t popCount = m_StackSize - scope.stackStart;
     m_Output << "\tadd rsp, " << popCount * 8 << std::endl;
-    m_StackSize -= popCount;
+    m_StackSize = scope.stackStart;
 }
 
 std::string Generator::createLabel() {

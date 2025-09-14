@@ -4,13 +4,14 @@ gimme z = 0;
 
 // test1
 
-maybe (1) {
-    gimme i = 1;
-} but (0) {
-    bye(68);
+maybe (0) {
+    x = 1;
+} but (1) {
+    x = 2;
 } nah {
-    bye(67);
+    x = 3;
 }
+
 
 /*
     l
@@ -18,4 +19,4 @@ maybe (1) {
     bye(20);
 */
 
-bye(z);
+bye(x);
