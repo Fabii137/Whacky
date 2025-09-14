@@ -108,10 +108,11 @@ public:
     std::optional<NodeStmt*> parseStmt();
     std::optional<NodeProg> parseProg();
 private:
-    std::optional<Token> peek(const size_t offset = 0) const;
+    std::optional<Token> peek(const int offset = 0) const;
     Token consume();
-    Token tryConsume(const TokenType type, const std::string& errMessage);
-    std::optional<Token> tryConsume(const TokenType type);
+    Token tryConsumeErr(const TokenType& type);
+    std::optional<Token> tryConsume(const TokenType& type);
+    void errorExpected(const std::string& msg) const;
 private:
     size_t m_Index = 0;
     const std::vector<Token> m_Tokens;

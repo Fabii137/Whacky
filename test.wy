@@ -1,4 +1,5 @@
-gimme x = 12 / (2 + 2 * 3) - 1;
+gimme x = 12 / (2 + 2 * 3 - 1111)
+;
 gimme y = x + 5;
 gimme z = 0;
 
@@ -6,7 +7,7 @@ gimme z = 0;
 
 maybe (0) {
     x = 1;
-} but (1) {
+} but (0) { 
     x = 2;
 } nah {
     x = 3;
@@ -18,5 +19,8 @@ maybe (0) {
     test2
     bye(20);
 */
+gimme fs = 1;
+
+
 
 bye(x);

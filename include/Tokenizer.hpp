@@ -44,6 +44,39 @@ enum class TokenType {
     yell, // print
 };
 
+inline std::string toString(const TokenType& type) {
+    switch(type) {
+        case TokenType::gimme: return "'gimme'";
+        case TokenType::ident: return "identifier";
+        case TokenType::eq: return "'='";
+        case TokenType::plus: return "'+'";
+        case TokenType::minus: return "'-'";
+        case TokenType::star: return "'*'";
+        case TokenType::fslash: return "'/'";
+        case TokenType::open_paren: return "'('";
+        case TokenType::close_paren: return "')'";
+        case TokenType::open_curly: return "'{'";
+        case TokenType::close_curly: return "'}'";
+        case TokenType::bye: return "'bye'";
+        case TokenType::semi: return "';'";
+        case TokenType::int_lit: return "int literal";
+        case TokenType::nothin: return "'nothin'";
+        case TokenType::vibes: return "'vibes'";
+        case TokenType::thingy: return "'thingy'";
+        case TokenType::gimmeback: return "'gimmeback'";
+        case TokenType::maybe: return "'maybe'";
+        case TokenType::but: return "'but'";
+        case TokenType::nah: return "'nah'";
+        case TokenType::keepgoing: return "'keepgoing'";
+        case TokenType::roundandround: return "'roundandround'";
+        case TokenType::yep: return "'yep'";
+        case TokenType::nope: return "'nope'";
+        case TokenType::nothingness: return "'nothingness'";
+        case TokenType::yell: return "'yell'";
+        default: return "unknown";
+    }
+}
+
 inline std::optional<int> binPrec(const TokenType type) {
     switch(type) {
         case TokenType::plus:
@@ -59,6 +92,8 @@ inline std::optional<int> binPrec(const TokenType type) {
 
 struct Token {
     TokenType type;
+    size_t line;
+    size_t col;
     std::optional<std::string> value;
 };
 
@@ -72,6 +107,8 @@ private:
     char consume();
 private:
     size_t m_Index = 0;
+    size_t m_Line = 1;
+    size_t m_Col = 1;
     const std::string m_Src;
 };
 

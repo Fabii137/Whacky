@@ -15,31 +15,27 @@ std::vector<Token> Tokenizer::tokenize() {
             while(peek().has_value() && std::isalnum(peek().value())) {
                 buf.push_back(consume());
             }
+
             if(buf == "bye") {
-                tokens.push_back({ .type = TokenType::bye });
-                buf.clear();
+                tokens.push_back({ TokenType::bye, m_Line, m_Col });
             } else if (buf == "gimme") {
-                tokens.push_back({ .type = TokenType::gimme});
-                buf.clear();
+                tokens.push_back({ TokenType::gimme, m_Line, m_Col });
             } else if (buf == "maybe") {
-                tokens.push_back({ .type = TokenType::maybe });
-                buf.clear();
+                tokens.push_back({ TokenType::maybe, m_Line, m_Col });
             } else if (buf == "but") {
-                tokens.push_back({ .type = TokenType::but });
-                buf.clear();
+                tokens.push_back({ TokenType::but, m_Line, m_Col });
             } else if (buf == "nah") {
-                tokens.push_back({ .type = TokenType::nah });
-                buf.clear();
+                tokens.push_back({ TokenType::nah, m_Line, m_Col });
             } else {
-                tokens.push_back({ .type = TokenType::ident, .value = buf });
-                buf.clear();
+                tokens.push_back({ TokenType::ident, m_Line, m_Col, buf });
             }
+            buf.clear();
         } else if (std::isdigit(peek().value())) {
             buf.push_back(consume());
             while(peek().has_value() && std::isdigit(peek().value())) {
                 buf.push_back(consume());
             }
-            tokens.push_back({ .type = TokenType::int_lit, .value = buf });
+            tokens.push_back({ TokenType::int_lit, m_Line, m_Col, buf });
             buf.clear();
         } else if(peek().value() == '/' && peek(1).has_value() && peek(1).value() == '/') {
             consume();
@@ -60,34 +56,36 @@ std::vector<Token> Tokenizer::tokenize() {
             }
         } else if (peek().value() == '(') {
             consume();
-            tokens.push_back({ .type = TokenType::open_paren });
+            tokens.push_back({ TokenType::open_paren, m_Line, m_Col });
         } else if (peek().value() == ')') {
             consume();
-            tokens.push_back({ .type = TokenType::close_paren });
+            tokens.push_back({ TokenType::close_paren, m_Line, m_Col });
         } else if (peek().value() == ';') {
             consume();
-            tokens.push_back({ .type = TokenType::semi });
+            tokens.push_back({ TokenType::semi, m_Line, m_Col });
         } else if (peek().value() == '=') {
             consume();
-            tokens.push_back({ .type = TokenType::eq });
+            tokens.push_back({ TokenType::eq, m_Line, m_Col });
         } else if (peek().value() == '+') {
             consume();
-            tokens.push_back({ .type = TokenType::plus });
+            tokens.push_back({ TokenType::plus, m_Line, m_Col });
         } else if (peek().value() == '-') {
             consume();
-            tokens.push_back({ .type = TokenType::minus });
+            tokens.push_back({ TokenType::minus, m_Line, m_Col });
         } else if (peek().value() == '*') {
             consume();
-            tokens.push_back({ .type = TokenType::star });
+            tokens.push_back({ TokenType::star, m_Line, m_Col });
         } else if (peek().value() == '/') {
             consume();
-            tokens.push_back({ .type = TokenType::fslash });
+            tokens.push_back({ TokenType::fslash, m_Line, m_Col });
         } else if (peek().value() == '{') {
             consume();
-            tokens.push_back({ .type = TokenType::open_curly });
+            tokens.push_back({ TokenType::open_curly, m_Line, m_Col });
         } else if (peek().value() == '}') {
             consume();
-            tokens.push_back({ .type = TokenType::close_curly });
+            tokens.push_back({ TokenType::close_curly, m_Line, m_Col });
+        } else if (peek().value() == '\n') {
+            consume();
         } else if(std::isspace(peek().value())) {
             consume();
         } else {
@@ -109,5 +107,12 @@ std::optional<char> Tokenizer::peek(size_t offset /*=0*/) const {
 }
 
 char Tokenizer::consume() {
-    return m_Src.at(m_Index++);
+    char c =  m_Src.at(m_Index++);
+    if(c == '\n') {
+        m_Line++;
+        m_Col = 1;
+    } else {
+        m_Col++;
+    }
+    return c;
 }

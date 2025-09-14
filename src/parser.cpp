@@ -6,7 +6,7 @@ Parser::Parser(std::vector<Token> tokens) : m_Tokens(std::move(tokens)), m_Alloc
 }
 
 std::optional<NodeTerm*> Parser::parseTerm() {
-    if(auto intLit = tryConsume(TokenType::int_lit)) {
+    if(const auto intLit = tryConsume(TokenType::int_lit)) {
         NodeTermIntLit* termIntLit = m_Allocator.alloc<NodeTermIntLit>();
         termIntLit->int_lit = intLit.value();
 
@@ -15,7 +15,7 @@ std::optional<NodeTerm*> Parser::parseTerm() {
         return term;
     } 
 
-    if (auto ident = tryConsume(TokenType::ident)) {
+    if (const auto ident = tryConsume(TokenType::ident)) {
         NodeTermIdent* termIdent = m_Allocator.alloc<NodeTermIdent>();
         termIdent->ident = ident.value();
 
@@ -24,14 +24,13 @@ std::optional<NodeTerm*> Parser::parseTerm() {
         return term;
     }
 
-    if (auto openParen = tryConsume(TokenType::open_paren)) {
+    if (const auto openParen = tryConsume(TokenType::open_paren)) {
         auto expr = parseExpr();
         if(!expr.has_value()) {
-            std::cerr << "Expected expression" << std::endl;
-            exit(EXIT_FAILURE);
+            errorExpected("expression");
         }
 
-        tryConsume(TokenType::close_paren, "Expected ')'");
+        tryConsumeErr(TokenType::close_paren);
         NodeTermParen* termParen = m_Allocator.alloc<NodeTermParen>();
         termParen->expr = expr.value();
 
@@ -64,18 +63,17 @@ std::optional<NodeExpr*> Parser::parseExpr(const int minPrec /*=0*/) {
             break;
         }
 
-        const auto [type, value] = consume(); // operator
+        const Token& op = consume();
         const int nextMinPrec = prec.value() + 1;
         auto exprRight = parseExpr(nextMinPrec);
         if(!exprRight.has_value()) {
-            std::cerr << "Unable to parse expression" << std::endl;
-            exit(EXIT_FAILURE);
+            errorExpected("expression");
         }
 
         auto binExpr = m_Allocator.alloc<NodeBinExpr>();
         auto exprLeft2 = m_Allocator.alloc<NodeExpr>();
 
-        switch(type) {
+        switch(op.type) {
             case TokenType::plus: {
                 auto add = m_Allocator.alloc<NodeBinExprAdd>();
                 exprLeft2->var = exprLeft->var;
@@ -128,30 +126,28 @@ std::optional<NodeScope*> Parser::parseScope() {
         scope->stmts.push_back(stmt.value());
     }
 
-    tryConsume(TokenType::close_curly, "Expected '}'");
+    tryConsumeErr(TokenType::close_curly);
 
     return scope;
 }
 
 std::optional<NodeMaybePred*> Parser::parseMaybePred() {
     if(tryConsume(TokenType::but)) {
-        tryConsume(TokenType::open_paren, "Expected '('");
+        tryConsumeErr(TokenType::open_paren);
         const auto but = m_Allocator.alloc<NodeMaybePredBut>();
         if(const auto expr = parseExpr()) {
             but->expr = expr.value();
         } else {
-            std::cerr << "Expected expression" << std::endl;
-            exit(EXIT_FAILURE);
+            errorExpected("expression");
         }
 
-        tryConsume(TokenType::close_paren, "Expected ')'");
+        tryConsumeErr(TokenType::close_paren);
 
         if(const auto scope = parseScope()) {
             but->scope = scope.value();
         
         } else {
-            std::cerr << "Expected scope" << std::endl;
-            exit(EXIT_FAILURE);
+            errorExpected("scope");
         }
 
         but->pred = parseMaybePred();
@@ -165,8 +161,7 @@ std::optional<NodeMaybePred*> Parser::parseMaybePred() {
         if(const auto scope = parseScope()) {
             nah->scope = scope.value();
         } else {
-            std::cerr << "Expected scope" << std::endl;
-            exit(EXIT_FAILURE);
+            errorExpected("scope");
         }
 
         const auto pred = m_Allocator.alloc<NodeMaybePred>();
@@ -185,12 +180,11 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         if(const auto expr = parseExpr()) {
             bye->expr = expr.value();
         } else {
-            std::cerr << "Invalid expression" << std::endl;
-            exit(EXIT_FAILURE);
+            errorExpected("expression");
         }
 
-        tryConsume(TokenType::close_paren, "Expected ')'");
-        tryConsume(TokenType::semi, "Expected ';'");
+        tryConsumeErr(TokenType::close_paren);
+        tryConsumeErr(TokenType::semi);
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
         stmt->var = bye;
@@ -210,10 +204,9 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         if(const auto expr = parseExpr()) {
             gimme->expr = expr.value();
         } else {
-            std::cerr << "Invalid expression" << std::endl;
-            exit(EXIT_FAILURE);
+            errorExpected("expression");
         }
-        tryConsume(TokenType::semi, "Expected ';'");
+        tryConsumeErr(TokenType::semi);
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
         stmt->var = gimme;
@@ -230,10 +223,9 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         if(const auto expr = parseExpr()) {
             assignment->expr = expr.value();
         } else {
-            std::cerr << "Invalid expression" << std::endl;
-            exit(EXIT_FAILURE);
+            errorExpected("expression");
         }
-        tryConsume(TokenType::semi, "Expected ';'");
+        tryConsumeErr(TokenType::semi);
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
         stmt->var = assignment;
@@ -247,26 +239,24 @@ std::optional<NodeStmt*> Parser::parseStmt() {
             return stmt;
         }
 
-        std::cerr << "Invalid scope" << std::endl;
-        exit(EXIT_FAILURE);
+        errorExpected("scope");
     }
     
     if (tryConsume(TokenType::maybe)) {
-        tryConsume(TokenType::open_paren, "Expected '('");
+        tryConsume(TokenType::open_paren);
         NodeStmtMaybe* maybe = m_Allocator.alloc<NodeStmtMaybe>();
         if(const auto expr = parseExpr()) {
             maybe->expr = expr.value();
         } else {
-            std::cerr << "Invalid expression" << std::endl;
-            exit(EXIT_FAILURE);
+            errorExpected("expression");
         }
-        tryConsume(TokenType::close_paren, "Expected ')'");
+        
+        tryConsumeErr(TokenType::close_paren);
 
         if(const auto scope = parseScope()) {
             maybe->scope = scope.value();
         } else {
-            std::cerr << "Invalid scope" << std::endl;
-            exit(EXIT_FAILURE);
+            errorExpected("scope");
         }
 
         maybe->pred = parseMaybePred();
@@ -282,18 +272,17 @@ std::optional<NodeStmt*> Parser::parseStmt() {
 std::optional<NodeProg> Parser::parseProg() {
     NodeProg prog;
     while(peek().has_value()) {
-        if(const auto stmt = parseStmt()) {
+        if (const auto stmt = parseStmt()) {
             prog.stmts.push_back(stmt.value());
         } else {
-            std::cerr << "Invalid statement" << std::endl;
-            exit(EXIT_FAILURE);
+            errorExpected("statement");
         }
     }
     return prog;
 }
 
 
-std::optional<Token> Parser::peek(const size_t offset /*=0*/) const {
+std::optional<Token> Parser::peek(const int offset /*=0*/) const {
     if(m_Index + offset >= m_Tokens.size()) {
         return {};
     }
@@ -305,19 +294,25 @@ Token Parser::consume() {
     return m_Tokens.at(m_Index++);
 }
 
-Token Parser::tryConsume(const TokenType type, const std::string& errMessage) {
+Token Parser::tryConsumeErr(const TokenType& type) {
     if(peek().has_value() && peek().value().type == type) {
         return consume();
     }
 
-    std::cerr << errMessage << std::endl;
-    exit(EXIT_FAILURE);
+    errorExpected(toString(type));
+    return {};
 }
 
-std::optional<Token> Parser::tryConsume(const TokenType type) {
+std::optional<Token> Parser::tryConsume(const TokenType& type) {
     if(peek().has_value() && peek().value().type == type) {
         return consume();
     }
 
     return {};
+}
+
+void Parser::errorExpected(const std::string& msg) const {
+    const Token& token = peek(-1).value();
+    std::cerr << "[Parse Error] Expected " << msg << " at " << token.line << ":" << token.col << std::endl;
+    exit(EXIT_FAILURE);
 }
