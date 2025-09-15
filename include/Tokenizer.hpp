@@ -11,6 +11,9 @@ enum class TokenType {
 
     _or,
     _and,
+    bor,
+    band,
+    _xor,
     neq,
     eqeq,
     ge,
@@ -59,6 +62,9 @@ inline std::string toString(const TokenType& type) {
         case TokenType::eq: return "'='";
         case TokenType::_or: return "'or'";
         case TokenType::_and: return "'and'";
+        case TokenType::bor: return "'lor'";
+        case TokenType::band: return "'land'";
+        case TokenType::_xor: return "'xor'";
         case TokenType::neq: return "'!='";
         case TokenType::eqeq: return "'=='";
         case TokenType::ge: return "'>='";
@@ -98,19 +104,23 @@ inline std::optional<int> binPrec(const TokenType type) {
         case TokenType::_or:
         case TokenType::_and:
             return 0;
+        case TokenType::bor:
+        case TokenType::band:
+        case TokenType::_xor:
+            return 1;
         case TokenType::neq:
         case TokenType::eqeq:
         case TokenType::ge:
         case TokenType::gt:
         case TokenType::le:
         case TokenType::lt:
-            return 1;
+            return 2;
         case TokenType::plus:
         case TokenType::minus:
-            return 2;
+            return 3;
         case TokenType::star:
         case TokenType::fslash:
-            return 3;
+            return 4;
         default:
             return {};
     }

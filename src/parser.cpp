@@ -90,6 +90,30 @@ std::optional<NodeExpr*> Parser::parseExpr(const int minPrec /*=0*/) {
                 binExpr->var = _and;
                 break;
             }
+            case TokenType::bor: {
+                NodeBinExprBor* bor = m_Allocator.alloc<NodeBinExprBor>();
+                exprLeft2->var = exprLeft->var;
+                bor->left = exprLeft2;
+                bor->right = exprRight.value();
+                binExpr->var = bor;
+                break;
+            }
+            case TokenType::band: {
+                NodeBinExprBand* band = m_Allocator.alloc<NodeBinExprBand>();
+                exprLeft2->var = exprLeft->var;
+                band->left = exprLeft2;
+                band->right = exprRight.value();
+                binExpr->var = band;
+                break;
+            }
+            case TokenType::_xor: {
+                NodeBinExprXor* _xor = m_Allocator.alloc<NodeBinExprXor>();
+                exprLeft2->var = exprLeft->var;
+                _xor->left = exprLeft2;
+                _xor->right = exprRight.value();
+                binExpr->var = _xor;
+                break;
+            }
             case TokenType::neq: {
                 NodeBinExprNeq* neq = m_Allocator.alloc<NodeBinExprNeq>();
                 exprLeft2->var = exprLeft->var;

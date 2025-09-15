@@ -30,6 +30,12 @@ std::vector<Token> Tokenizer::tokenize() {
                 tokens.push_back({ TokenType::_and, m_Line, m_Col });
             } else if (buf == "or") {
                 tokens.push_back({ TokenType::_or, m_Line, m_Col });
+            } else if (buf == "band") {
+                tokens.push_back({ TokenType::band, m_Line, m_Col });
+            } else if (buf == "bor") {
+                tokens.push_back({ TokenType::bor, m_Line, m_Col });
+            } else if (buf == "xor") {
+                tokens.push_back({ TokenType::_xor, m_Line, m_Col });
             } else {
                 tokens.push_back({ TokenType::ident, m_Line, m_Col, buf });
             }

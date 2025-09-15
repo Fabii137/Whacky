@@ -1,12 +1,12 @@
-gimme x = 12 / (2 + 2 * 3 - 1111);
+gimme x = 12 / (2 + 2 * 3 - 1);
 gimme y = x + 5;
-gimme z = 0;
+gimme z = 1;
 
 // test1
 
-maybe (x > 1) {
+maybe (0 or 0) {
     x = 1;
-} but (0) { 
+} but (1) { 
     x = 2;
 } nah {
     x = 3;

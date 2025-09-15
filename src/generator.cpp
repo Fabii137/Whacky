@@ -37,12 +37,41 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
     struct BinExprVisitor {
         Generator& generator;
 
+        void operator()(const NodeBinExprBor* bor) const {
+            generator.generateExpr(bor->right);
+            generator.generateExpr(bor->left);
+
+            generator.pop("rax");
+            generator.pop("rbx");
+            generator.m_Output << "\tor rax, rbx\n";
+            generator.push("rax");
+        }
+
+        void operator()(const NodeBinExprBand* band) const {
+            generator.generateExpr(band->right);
+            generator.generateExpr(band->left);
+
+            generator.pop("rax");
+            generator.pop("rbx");
+            generator.m_Output << "\tand rax, rbx\n";
+            generator.push("rax");
+        }
+
         void operator()(const NodeBinExprOr* _or) const {
             generator.generateExpr(_or->right);
             generator.generateExpr(_or->left);
 
             generator.pop("rax");
             generator.pop("rbx");
+
+            generator.m_Output << "\tcmp rax, 0\n";
+            generator.m_Output << "\tsetne al\n";
+            generator.m_Output << "\tmovzx rax, al\n";
+
+            generator.m_Output << "\tcmp rbx, 0\n";
+            generator.m_Output << "\tsetne bl\n";
+            generator.m_Output << "\tmovzx rbx, bl\n";
+            
             generator.m_Output << "\tor rax, rbx\n";
             generator.push("rax");
         }
@@ -53,7 +82,26 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
 
             generator.pop("rax");
             generator.pop("rbx");
+
+            generator.m_Output << "\tcmp rax, 0\n";
+            generator.m_Output << "\tsetne al\n";
+            generator.m_Output << "\tmovzx rax, al\n";
+
+            generator.m_Output << "\tcmp rbx, 0\n";
+            generator.m_Output << "\tsetne bl\n";
+            generator.m_Output << "\tmovzx rbx, bl\n";
+            
             generator.m_Output << "\tand rax, rbx\n";
+            generator.push("rax");
+        }
+
+        void operator()(const NodeBinExprXor* _xor) const {
+            generator.generateExpr(_xor->right);
+            generator.generateExpr(_xor->left);
+
+            generator.pop("rax");
+            generator.pop("rbx");
+            generator.m_Output << "\txor rax, rbx\n";
             generator.push("rax");
         }
 
@@ -63,7 +111,9 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
 
             generator.pop("rax");
             generator.pop("rbx");
-            generator.m_Output << "\tadd rax, rbx\n";
+            generator.m_Output << "\tcmp rax, rbx\n";
+            generator.m_Output << "\tsetne al\n";
+            generator.m_Output << "\tmovzx rax, al\n";
             generator.push("rax");
         }
 
@@ -73,7 +123,9 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
 
             generator.pop("rax");
             generator.pop("rbx");
-            generator.m_Output << "\tadd rax, rbx\n";
+            generator.m_Output << "\tcmp rax, rbx\n";
+            generator.m_Output << "\tsete al\n";
+            generator.m_Output << "\tmovzx rax, al\n";
             generator.push("rax");
         }
 
@@ -83,7 +135,9 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
 
             generator.pop("rax");
             generator.pop("rbx");
-            generator.m_Output << "\tadd rax, rbx\n";
+            generator.m_Output << "\tcmp rax, rbx\n";
+            generator.m_Output << "\tsetge al\n";
+            generator.m_Output << "\tmovzx rax, al\n";
             generator.push("rax");
         }
 
@@ -93,7 +147,9 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
 
             generator.pop("rax");
             generator.pop("rbx");
-            generator.m_Output << "\tadd rax, rbx\n";
+            generator.m_Output << "\tcmp rax, rbx\n";
+            generator.m_Output << "\tsetg al\n";
+            generator.m_Output << "\tmovzx rax, al\n";
             generator.push("rax");
         }
 
@@ -103,7 +159,9 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
 
             generator.pop("rax");
             generator.pop("rbx");
-            generator.m_Output << "\tadd rax, rbx\n";
+            generator.m_Output << "\tcmp rax, rbx\n";
+            generator.m_Output << "\tsetle al\n";
+            generator.m_Output << "\tmovzx rax, al\n";
             generator.push("rax");
         }
 
@@ -113,7 +171,9 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
 
             generator.pop("rax");
             generator.pop("rbx");
-            generator.m_Output << "\tadd rax, rbx\n";
+            generator.m_Output << "\tcmp rax, rbx\n";
+            generator.m_Output << "\tsetl al\n";
+            generator.m_Output << "\tmovzx rax, al\n";
             generator.push("rax");
         }
 
@@ -198,7 +258,7 @@ void Generator::generateMaybePred(const NodeMaybePred* pred, const std::string& 
 
             const std::string label = generator.createLabel();
 
-            generator.m_Output << "\ttest rax, rax\n";
+            generator.m_Output << "\tcmp rax, 0\n";
             generator.m_Output << "\tjz " << label << "\n";
             generator.generateScope(but->scope);
             generator.m_Output << "\tjmp " << endLabel << "\n";

@@ -25,16 +25,19 @@
 }
 
 [BinExpr] -> {
-    [Expr] / [Expr]     // prec = 3
-    [Expr] * [Expr]     // prec = 3
-    [Expr] - [Expr]     // prec = 2
-    [Expr] + [Expr]     // prec = 2
-    [Expr] < [Expr]     // prec = 1
-    [Expr] <= [Expr]    // prec = 1
-    [Expr] > [Expr]     // prec = 1
-    [Expr] >= [Expr]    // prec = 1
-    [Expr] == [Expr]    // prec = 1
-    [Expr] != [Expr]    // prec = 1
+    [Expr] / [Expr]     // prec = 4
+    [Expr] * [Expr]     // prec = 4
+    [Expr] - [Expr]     // prec = 3
+    [Expr] + [Expr]     // prec = 3
+    [Expr] < [Expr]     // prec = 2
+    [Expr] <= [Expr]    // prec = 2
+    [Expr] > [Expr]     // prec = 2
+    [Expr] >= [Expr]    // prec = 2
+    [Expr] == [Expr]    // prec = 2
+    [Expr] != [Expr]    // prec = 2
+    [Expr] xor [Expr]   // prec = 1
+    [Expr] band [Expr]  // prec = 1
+    [Expr] bor [Expr]   // prec = 1
     [Expr] and [Expr]   // prec = 0
     [Expr] or [Expr]    // prec = 0
 }
