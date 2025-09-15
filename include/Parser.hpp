@@ -91,6 +91,10 @@ struct NodeTermIntLit {
     Token int_lit;
 };
 
+struct NodeTermBool {
+    Token _bool;
+};
+
 struct NodeTermIdent {
     Token ident;
 };
@@ -100,7 +104,7 @@ struct NodeTermParen {
 };
 
 struct NodeTerm {
-    std::variant<NodeTermIntLit*, NodeTermIdent*, NodeTermParen*> var;
+    std::variant<NodeTermIntLit*, NodeTermBool*, NodeTermIdent*, NodeTermParen*> var;
 };
 
 struct NodeExpr {

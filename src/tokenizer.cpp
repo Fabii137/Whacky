@@ -20,6 +20,10 @@ std::vector<Token> Tokenizer::tokenize() {
                 tokens.push_back({ TokenType::bye, m_Line, m_Col });
             } else if (buf == "gimme") {
                 tokens.push_back({ TokenType::gimme, m_Line, m_Col });
+            } else if (buf == "yep") {
+                tokens.push_back({ TokenType::_bool, m_Line, m_Col, "1" });
+            } else if (buf == "nope") {
+                tokens.push_back({ TokenType::_bool, m_Line, m_Col, "0" });
             } else if (buf == "maybe") {
                 tokens.push_back({ TokenType::maybe, m_Line, m_Col });
             } else if (buf == "but") {

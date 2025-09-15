@@ -16,6 +16,11 @@ void Generator::generateTerm(const NodeTerm* term) {
             generator.push("rax");
         }
 
+        void operator()(const NodeTermBool* _bool) const {
+            generator.m_Output << "\tmov rax, " << _bool->_bool.value.value() << "\n";
+            generator.push("rax");
+        }
+
         void operator()(const NodeTermIdent* ident) const {
             Var* var = generator.lookupVar(ident->ident.value.value());
             std::string offset = std::format("qword [rsp + {}]", (generator.m_StackSize - var->stackLoc-1) * 8);

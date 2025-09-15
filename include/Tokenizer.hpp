@@ -47,8 +47,7 @@ enum class TokenType {
     keepgoing, // while
     roundandround, // for
 
-    yep, // true
-    nope, // false
+    _bool,
 
     nothingness, // null
 
@@ -91,8 +90,7 @@ inline std::string toString(const TokenType& type) {
         case TokenType::nah: return "'nah'";
         case TokenType::keepgoing: return "'keepgoing'";
         case TokenType::roundandround: return "'roundandround'";
-        case TokenType::yep: return "'yep'";
-        case TokenType::nope: return "'nope'";
+        case TokenType::_bool: return "'bool'";
         case TokenType::nothingness: return "'nothingness'";
         case TokenType::yell: return "'yell'";
         default: return "unknown";

@@ -39,6 +39,15 @@ std::optional<NodeTerm*> Parser::parseTerm() {
         return term;
     }
 
+    if(const auto _bool = tryConsume(TokenType::_bool)) {
+        NodeTermBool* termBool = m_Allocator.alloc<NodeTermBool>();
+        termBool->_bool = _bool.value();
+
+        NodeTerm* term = m_Allocator.alloc<NodeTerm>();
+        term->var = termBool;
+        return term;
+    }
+
     return {};
 }
 

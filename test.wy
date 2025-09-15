@@ -1,15 +1,15 @@
-gimme x = 12 / (2 + 2 * 3 - 1);
+gimme x = 12 / (1 + 2 * 6 - 1); // 1
 gimme y = x + 5;
 gimme z = 1;
 
 // test1
 
-maybe (0 or 0) {
-    x = 1;
+maybe (z == yep) {
+    x = x + 1;
 } but (1) { 
-    x = 2;
+    x = x + 2;
 } nah {
-    x = 3;
+    x = x + 3;
 }
 
 

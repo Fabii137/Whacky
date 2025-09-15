@@ -44,7 +44,9 @@
 
 [Term] -> {
     int_lit
+    bool
     ident
     ([Expr])
 }
+
 ```
