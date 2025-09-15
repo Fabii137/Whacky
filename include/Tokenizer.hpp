@@ -95,12 +95,22 @@ inline std::string toString(const TokenType& type) {
 
 inline std::optional<int> binPrec(const TokenType type) {
     switch(type) {
+        case TokenType::_or:
+        case TokenType::_and:
+            return 0;
+        case TokenType::neq:
+        case TokenType::eqeq:
+        case TokenType::ge:
+        case TokenType::gt:
+        case TokenType::le:
+        case TokenType::lt:
+            return 1;
         case TokenType::plus:
         case TokenType::minus:
-            return 0;
+            return 2;
         case TokenType::star:
         case TokenType::fslash:
-            return 1;
+            return 3;
         default:
             return {};
     }
