@@ -61,7 +61,7 @@ std::optional<NodeExpr*> Parser::parseExpr(const int minPrec /*=0*/) {
     exprLeft->var = termLeft.value();
 
     while(true) {
-        std::optional<Token> currToken = peek();
+        auto currToken = peek();
         std::optional<int> prec;
         if(!currToken.has_value()) {
             break;
@@ -79,19 +79,18 @@ std::optional<NodeExpr*> Parser::parseExpr(const int minPrec /*=0*/) {
             errorExpected("expression");
         }
 
-        auto binExpr = m_Allocator.alloc<NodeBinExpr>();
-
+        // find binary operator
         auto it = tokenTypeToBinOp.find(op.type);
-        if(it != tokenTypeToBinOp.end()) {
-            binExpr->op = it->second;
-        } else {
+        if(it == tokenTypeToBinOp.end()) {
             errorExpected("binary operator");
         }
 
+        NodeBinExpr* binExpr = m_Allocator.alloc<NodeBinExpr>();
+        binExpr->op = it->second;
         binExpr->left = exprLeft;
         binExpr->right =  exprRight.value();
 
-        auto newExpr = m_Allocator.alloc<NodeExpr>();
+        NodeExpr* newExpr = m_Allocator.alloc<NodeExpr>();
         newExpr->var = binExpr;
         exprLeft = newExpr;
     }
@@ -128,7 +127,6 @@ std::optional<NodeMaybePred*> Parser::parseMaybePred() {
 
         if(const auto scope = parseScope()) {
             but->scope = scope.value();
-        
         } else {
             errorExpected("scope");
         }
@@ -201,7 +199,7 @@ std::optional<NodeStmt*> Parser::parseStmt() {
     ) {
         NodeStmtAssignment* assignment = m_Allocator.alloc<NodeStmtAssignment>();
         assignment->ident = consume();
-        consume(); // =
+        consume(); // eq
         
         if(const auto expr = parseExpr()) {
             assignment->expr = expr.value();
