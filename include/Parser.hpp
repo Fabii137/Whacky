@@ -1,6 +1,7 @@
 #pragma once
 
 #include <variant>
+#include <unordered_map>
 #include "Tokenizer.hpp"
 #include "ArenaAllocator.hpp"
 #include <assert.h>
@@ -11,6 +12,24 @@ struct NodeMaybePred;
 
 enum class BinOp {
     Or, And, Band, Bor, Xor, Neq, Eq, Ge, Gt, Le, Lt, Add, Sub, Mul, Div 
+};
+
+inline static const std::unordered_map<TokenType, BinOp> tokenTypeToBinOp = {
+    { TokenType::_or, BinOp::Or },
+    { TokenType::_and, BinOp::And },
+    { TokenType::band, BinOp::Band },
+    { TokenType::bor, BinOp::Bor },
+    { TokenType::_xor, BinOp::Xor },
+    { TokenType::neq, BinOp::Neq },
+    { TokenType::eqeq, BinOp::Eq },
+    { TokenType::ge, BinOp::Ge },
+    { TokenType::gt, BinOp::Gt },
+    { TokenType::le, BinOp::Le },
+    { TokenType::lt, BinOp::Lt },
+    { TokenType::plus, BinOp::Add },
+    { TokenType::minus, BinOp::Sub },
+    { TokenType::star, BinOp::Mul },
+    { TokenType::fslash, BinOp::Div },
 };
 
 struct NodeBinExpr {

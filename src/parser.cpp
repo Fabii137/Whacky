@@ -81,69 +81,11 @@ std::optional<NodeExpr*> Parser::parseExpr(const int minPrec /*=0*/) {
 
         auto binExpr = m_Allocator.alloc<NodeBinExpr>();
 
-        switch(op.type) {
-            case TokenType::_or: {
-                binExpr->op = BinOp::Or;
-                break;
-            }
-            case TokenType::_and: {
-                binExpr->op = BinOp::And;
-                break;
-            }
-            case TokenType::bor: {
-                binExpr->op = BinOp::Bor;
-                break;
-            }
-            case TokenType::band: {
-                binExpr->op = BinOp::Band;
-                break;
-            }
-            case TokenType::_xor: {
-                binExpr->op = BinOp::Xor;
-                break;
-            }
-            case TokenType::neq: {
-                binExpr->op = BinOp::Neq;
-                break;
-            }
-            case TokenType::eqeq: {
-                binExpr->op = BinOp::Eq;
-                break;
-            }
-            case TokenType::ge: {
-                binExpr->op = BinOp::Ge;
-                break;
-            }
-            case TokenType::gt: {
-                binExpr->op = BinOp::Gt;
-                break;
-            }
-            case TokenType::le: {
-                binExpr->op = BinOp::Le;
-                break;
-            }
-            case TokenType::lt: {
-                binExpr->op = BinOp::Lt;
-                break;
-            }
-            case TokenType::plus: {
-                binExpr->op = BinOp::Add;
-                break;
-            }
-            case TokenType::minus: {
-                binExpr->op = BinOp::Sub;
-                break;
-            }
-            case TokenType::star: {
-                binExpr->op = BinOp::Mul;
-                break;
-            }
-            case TokenType::fslash: {
-                binExpr->op = BinOp::Div;
-                break;
-            }
-            default:
-                errorExpected("binary operator");
+        auto it = tokenTypeToBinOp.find(op.type);
+        if(it != tokenTypeToBinOp.end()) {
+            binExpr->op = it->second;
+        } else {
+            errorExpected("binary operator");
         }
 
         binExpr->left = exprLeft;
