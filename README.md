@@ -1,8 +1,8 @@
 
 # Whacky
 
-This is a basic compiler written c++.
-For language grammar see ./docs/grammar.md
+This is a basic compiler written c++ for educational purposes.
+The language grammar can be found at ./docs/grammar.md
 
 
 ## Requirements
