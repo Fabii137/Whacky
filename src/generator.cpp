@@ -36,6 +36,87 @@ void Generator::generateTerm(const NodeTerm* term) {
 void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
     struct BinExprVisitor {
         Generator& generator;
+
+        void operator()(const NodeBinExprOr* _or) const {
+            generator.generateExpr(_or->right);
+            generator.generateExpr(_or->left);
+
+            generator.pop("rax");
+            generator.pop("rbx");
+            generator.m_Output << "\tor rax, rbx\n";
+            generator.push("rax");
+        }
+
+        void operator()(const NodeBinExprAnd* _and) const {
+            generator.generateExpr(_and->right);
+            generator.generateExpr(_and->left);
+
+            generator.pop("rax");
+            generator.pop("rbx");
+            generator.m_Output << "\tand rax, rbx\n";
+            generator.push("rax");
+        }
+
+        void operator()(const NodeBinExprNeq* neq) const {
+            generator.generateExpr(neq->right);
+            generator.generateExpr(neq->left);
+
+            generator.pop("rax");
+            generator.pop("rbx");
+            generator.m_Output << "\tadd rax, rbx\n";
+            generator.push("rax");
+        }
+
+        void operator()(const NodeBinExprEq* eq) const {
+            generator.generateExpr(eq->right);
+            generator.generateExpr(eq->left);
+
+            generator.pop("rax");
+            generator.pop("rbx");
+            generator.m_Output << "\tadd rax, rbx\n";
+            generator.push("rax");
+        }
+
+        void operator()(const NodeBinExprGe* ge) const {
+            generator.generateExpr(ge->right);
+            generator.generateExpr(ge->left);
+
+            generator.pop("rax");
+            generator.pop("rbx");
+            generator.m_Output << "\tadd rax, rbx\n";
+            generator.push("rax");
+        }
+
+        void operator()(const NodeBinExprGt* gt) const {
+            generator.generateExpr(gt->right);
+            generator.generateExpr(gt->left);
+
+            generator.pop("rax");
+            generator.pop("rbx");
+            generator.m_Output << "\tadd rax, rbx\n";
+            generator.push("rax");
+        }
+
+        void operator()(const NodeBinExprLe* le) const {
+            generator.generateExpr(le->right);
+            generator.generateExpr(le->left);
+
+            generator.pop("rax");
+            generator.pop("rbx");
+            generator.m_Output << "\tadd rax, rbx\n";
+            generator.push("rax");
+        }
+
+        void operator()(const NodeBinExprLt* lt) const {
+            generator.generateExpr(lt->right);
+            generator.generateExpr(lt->left);
+
+            generator.pop("rax");
+            generator.pop("rbx");
+            generator.m_Output << "\tadd rax, rbx\n";
+            generator.push("rax");
+        }
+
         void operator()(const NodeBinExprAdd* add) const {
             generator.generateExpr(add->right);
             generator.generateExpr(add->left);

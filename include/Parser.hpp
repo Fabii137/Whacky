@@ -8,6 +8,46 @@ struct NodeExpr;
 struct NodeStmt;
 struct NodeMaybePred;
 
+struct NodeBinExprOr {
+    NodeExpr* left;
+    NodeExpr* right;
+};
+
+struct NodeBinExprAnd {
+    NodeExpr* left;
+    NodeExpr* right;
+};
+
+struct NodeBinExprNeq {
+    NodeExpr* left;
+    NodeExpr* right;
+};
+
+struct NodeBinExprEq {
+    NodeExpr* left;
+    NodeExpr* right;
+};
+
+struct NodeBinExprGe {
+    NodeExpr* left;
+    NodeExpr* right;
+};
+
+struct NodeBinExprGt {
+    NodeExpr* left;
+    NodeExpr* right;
+};
+
+struct NodeBinExprLe {
+    NodeExpr* left;
+    NodeExpr* right;
+};
+
+struct NodeBinExprLt {
+    NodeExpr* left;
+    NodeExpr* right;
+};
+
 struct NodeBinExprAdd {
     NodeExpr* left;
     NodeExpr* right;
@@ -29,7 +69,7 @@ struct NodeBinExprDiv {
 };
 
 struct NodeBinExpr {
-    std::variant<NodeBinExprAdd*, NodeBinExprSub*, NodeBinExprMul*, NodeBinExprDiv*> var;
+    std::variant<NodeBinExprOr*, NodeBinExprAnd*, NodeBinExprNeq*, NodeBinExprEq*, NodeBinExprGe*, NodeBinExprGt*, NodeBinExprLe*, NodeBinExprLt*, NodeBinExprAdd*, NodeBinExprSub*, NodeBinExprMul*, NodeBinExprDiv*> var;
 };
 
 struct NodeTermIntLit {

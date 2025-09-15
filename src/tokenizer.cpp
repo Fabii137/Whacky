@@ -26,6 +26,10 @@ std::vector<Token> Tokenizer::tokenize() {
                 tokens.push_back({ TokenType::but, m_Line, m_Col });
             } else if (buf == "nah") {
                 tokens.push_back({ TokenType::nah, m_Line, m_Col });
+            } else if (buf == "and") {
+                tokens.push_back({ TokenType::_and, m_Line, m_Col });
+            } else if (buf == "or") {
+                tokens.push_back({ TokenType::_or, m_Line, m_Col });
             } else {
                 tokens.push_back({ TokenType::ident, m_Line, m_Col, buf });
             }
@@ -64,8 +68,42 @@ std::vector<Token> Tokenizer::tokenize() {
             consume();
             tokens.push_back({ TokenType::semi, m_Line, m_Col });
         } else if (peek().value() == '=') {
+            if (peek(1).has_value() && peek(1).value() == '=') {
+                consume();
+                consume();
+                tokens.push_back({ TokenType::eqeq, m_Line, m_Col });
+                continue;
+            }
             consume();
             tokens.push_back({ TokenType::eq, m_Line, m_Col });
+        } else if (peek().value() == '!') {
+            if(peek(1).has_value() && peek(1).value() == '=') {
+                consume();
+                consume();
+                tokens.push_back({ TokenType::neq, m_Line, m_Col });
+                continue;
+            }
+
+            std::cerr << "Invalid token(!)" << std::endl;
+            exit(EXIT_FAILURE);
+        } else if (peek().value() == '>') {
+            if (peek(1).has_value() && peek(1).value() == '=') {
+                consume();
+                consume();
+                tokens.push_back({ TokenType::ge, m_Line, m_Col });
+                continue;
+            }
+            consume();
+            tokens.push_back({ TokenType::gt, m_Line, m_Col });
+        } else if (peek().value() == '<') {
+            if (peek(1).has_value() && peek(1).value() == '=') {
+                consume();
+                consume();
+                tokens.push_back({ TokenType::le, m_Line, m_Col });
+                continue;
+            }
+            consume();
+            tokens.push_back({ TokenType::lt, m_Line, m_Col });
         } else if (peek().value() == '+') {
             consume();
             tokens.push_back({ TokenType::plus, m_Line, m_Col });

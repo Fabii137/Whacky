@@ -4,7 +4,7 @@ gimme z = 0;
 
 // test1
 
-maybe (0) {
+maybe (x > 1) {
     x = 1;
 } but (0) { 
     x = 2;

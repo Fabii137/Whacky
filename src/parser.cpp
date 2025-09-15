@@ -74,8 +74,72 @@ std::optional<NodeExpr*> Parser::parseExpr(const int minPrec /*=0*/) {
         auto exprLeft2 = m_Allocator.alloc<NodeExpr>();
 
         switch(op.type) {
+            case TokenType::_or: {
+                NodeBinExprOr* _or = m_Allocator.alloc<NodeBinExprOr>();
+                exprLeft2->var = exprLeft->var;
+                _or->left = exprLeft2;
+                _or->right = exprRight.value();
+                binExpr->var = _or;
+                break;
+            }
+            case TokenType::_and: {
+                NodeBinExprAnd* _and = m_Allocator.alloc<NodeBinExprAnd>();
+                exprLeft2->var = exprLeft->var;
+                _and->left = exprLeft2;
+                _and->right = exprRight.value();
+                binExpr->var = _and;
+                break;
+            }
+            case TokenType::neq: {
+                NodeBinExprNeq* neq = m_Allocator.alloc<NodeBinExprNeq>();
+                exprLeft2->var = exprLeft->var;
+                neq->left = exprLeft2;
+                neq->right = exprRight.value();
+                binExpr->var = neq;
+                break;
+            }
+            case TokenType::eqeq: {
+                NodeBinExprEq* eq = m_Allocator.alloc<NodeBinExprEq>();
+                exprLeft2->var = exprLeft->var;
+                eq->left = exprLeft2;
+                eq->right = exprRight.value();
+                binExpr->var = eq;
+                break;
+            }
+            case TokenType::ge: {
+                NodeBinExprGe* ge = m_Allocator.alloc<NodeBinExprGe>();
+                exprLeft2->var = exprLeft->var;
+                ge->left = exprLeft2;
+                ge->right = exprRight.value();
+                binExpr->var = ge;
+                break;
+            }
+            case TokenType::gt: {
+                NodeBinExprGt* gt = m_Allocator.alloc<NodeBinExprGt>();
+                exprLeft2->var = exprLeft->var;
+                gt->left = exprLeft2;
+                gt->right = exprRight.value();
+                binExpr->var = gt;
+                break;
+            }
+            case TokenType::le: {
+                NodeBinExprLe* le = m_Allocator.alloc<NodeBinExprLe>();
+                exprLeft2->var = exprLeft->var;
+                le->left = exprLeft2;
+                le->right = exprRight.value();
+                binExpr->var = le;
+                break;
+            }
+            case TokenType::lt: {
+                NodeBinExprLt* lt = m_Allocator.alloc<NodeBinExprLt>();
+                exprLeft2->var = exprLeft->var;
+                lt->left = exprLeft2;
+                lt->right = exprRight.value();
+                binExpr->var = lt;
+                break;
+            }
             case TokenType::plus: {
-                auto add = m_Allocator.alloc<NodeBinExprAdd>();
+                NodeBinExprAdd* add = m_Allocator.alloc<NodeBinExprAdd>();
                 exprLeft2->var = exprLeft->var;
                 add->left = exprLeft2;
                 add->right = exprRight.value();
@@ -83,7 +147,7 @@ std::optional<NodeExpr*> Parser::parseExpr(const int minPrec /*=0*/) {
                 break;
             }
             case TokenType::minus: {
-                auto sub = m_Allocator.alloc<NodeBinExprSub>();
+                NodeBinExprSub* sub = m_Allocator.alloc<NodeBinExprSub>();
                 exprLeft2->var = exprLeft->var;
                 sub->left = exprLeft2;
                 sub->right = exprRight.value();
@@ -91,7 +155,7 @@ std::optional<NodeExpr*> Parser::parseExpr(const int minPrec /*=0*/) {
                 break;
             }
             case TokenType::star: {
-                auto mul = m_Allocator.alloc<NodeBinExprMul>();
+                NodeBinExprMul* mul = m_Allocator.alloc<NodeBinExprMul>();
                 exprLeft2->var = exprLeft->var;
                 mul->left = exprLeft2;
                 mul->right = exprRight.value();
@@ -99,7 +163,7 @@ std::optional<NodeExpr*> Parser::parseExpr(const int minPrec /*=0*/) {
                 break;
             }
             case TokenType::fslash: {
-                auto div = m_Allocator.alloc<NodeBinExprDiv>();
+                NodeBinExprDiv* div = m_Allocator.alloc<NodeBinExprDiv>();
                 exprLeft2->var = exprLeft->var;
                 div->left = exprLeft2;
                 div->right = exprRight.value();

@@ -9,6 +9,14 @@ enum class TokenType {
     ident,
     eq,
 
+    _or,
+    _and,
+    neq,
+    eqeq,
+    ge,
+    gt,
+    le,
+    lt,
     plus,
     minus,
     star,
@@ -49,6 +57,14 @@ inline std::string toString(const TokenType& type) {
         case TokenType::gimme: return "'gimme'";
         case TokenType::ident: return "identifier";
         case TokenType::eq: return "'='";
+        case TokenType::_or: return "'or'";
+        case TokenType::_and: return "'and'";
+        case TokenType::neq: return "'!='";
+        case TokenType::eqeq: return "'=='";
+        case TokenType::ge: return "'>='";
+        case TokenType::gt: return "'>'";
+        case TokenType::le: return "'<='";
+        case TokenType::lt: return "'<'";
         case TokenType::plus: return "'+'";
         case TokenType::minus: return "'-'";
         case TokenType::star: return "'*'";
