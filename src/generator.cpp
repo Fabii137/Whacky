@@ -39,192 +39,104 @@ void Generator::generateTerm(const NodeTerm* term) {
 }
 
 void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
-    struct BinExprVisitor {
-        Generator& generator;
+    generateExpr(binExpr->right);
+    generateExpr(binExpr->left);
+    pop("rax");
+    pop("rbx");
+    switch (binExpr->op)
+    {
+        case BinOp::Bor:
+            m_Output << "\tor rax, rbx\n";
+            break;
 
-        void operator()(const NodeBinExprBor* bor) const {
-            generator.generateExpr(bor->right);
-            generator.generateExpr(bor->left);
+        case BinOp::Band:
+            m_Output << "\tand rax, rbx\n";
+            break;
 
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\tor rax, rbx\n";
-            generator.push("rax");
-        }
+        case BinOp::Or:
+            m_Output << "\tcmp rax, 0\n";
+            m_Output << "\tsetne al\n";
+            m_Output << "\tmovzx rax, al\n";
 
-        void operator()(const NodeBinExprBand* band) const {
-            generator.generateExpr(band->right);
-            generator.generateExpr(band->left);
-
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\tand rax, rbx\n";
-            generator.push("rax");
-        }
-
-        void operator()(const NodeBinExprOr* _or) const {
-            generator.generateExpr(_or->right);
-            generator.generateExpr(_or->left);
-
-            generator.pop("rax");
-            generator.pop("rbx");
-
-            generator.m_Output << "\tcmp rax, 0\n";
-            generator.m_Output << "\tsetne al\n";
-            generator.m_Output << "\tmovzx rax, al\n";
-
-            generator.m_Output << "\tcmp rbx, 0\n";
-            generator.m_Output << "\tsetne bl\n";
-            generator.m_Output << "\tmovzx rbx, bl\n";
+            m_Output << "\tcmp rbx, 0\n";
+            m_Output << "\tsetne bl\n";
+            m_Output << "\tmovzx rbx, bl\n";
             
-            generator.m_Output << "\tor rax, rbx\n";
-            generator.push("rax");
-        }
+            m_Output << "\tor rax, rbx\n";
+            break;
 
-        void operator()(const NodeBinExprAnd* _and) const {
-            generator.generateExpr(_and->right);
-            generator.generateExpr(_and->left);
+        case BinOp::And:
+            m_Output << "\tcmp rax, 0\n";
+            m_Output << "\tsetne al\n";
+            m_Output << "\tmovzx rax, al\n";
 
-            generator.pop("rax");
-            generator.pop("rbx");
-
-            generator.m_Output << "\tcmp rax, 0\n";
-            generator.m_Output << "\tsetne al\n";
-            generator.m_Output << "\tmovzx rax, al\n";
-
-            generator.m_Output << "\tcmp rbx, 0\n";
-            generator.m_Output << "\tsetne bl\n";
-            generator.m_Output << "\tmovzx rbx, bl\n";
+            m_Output << "\tcmp rbx, 0\n";
+            m_Output << "\tsetne bl\n";
+            m_Output << "\tmovzx rbx, bl\n";
             
-            generator.m_Output << "\tand rax, rbx\n";
-            generator.push("rax");
-        }
+            m_Output << "\tand rax, rbx\n";
+            break;
 
-        void operator()(const NodeBinExprXor* _xor) const {
-            generator.generateExpr(_xor->right);
-            generator.generateExpr(_xor->left);
+        case BinOp::Xor:
+            m_Output << "\txor rax, rbx\n";
+            break;
 
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\txor rax, rbx\n";
-            generator.push("rax");
-        }
+        case BinOp::Neq:
+            m_Output << "\tcmp rax, rbx\n";
+            m_Output << "\tsetne al\n";
+            m_Output << "\tmovzx rax, al\n";
+            break;
 
-        void operator()(const NodeBinExprNeq* neq) const {
-            generator.generateExpr(neq->right);
-            generator.generateExpr(neq->left);
+        case BinOp::Eq:
+            m_Output << "\tcmp rax, rbx\n";
+            m_Output << "\tsete al\n";
+            m_Output << "\tmovzx rax, al\n";
+            break;
 
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\tcmp rax, rbx\n";
-            generator.m_Output << "\tsetne al\n";
-            generator.m_Output << "\tmovzx rax, al\n";
-            generator.push("rax");
-        }
+        case BinOp::Ge:
+            m_Output << "\tcmp rax, rbx\n";
+            m_Output << "\tsetge al\n";
+            m_Output << "\tmovzx rax, al\n";
+            break;
 
-        void operator()(const NodeBinExprEq* eq) const {
-            generator.generateExpr(eq->right);
-            generator.generateExpr(eq->left);
+        case BinOp::Gt:
+            m_Output << "\tcmp rax, rbx\n";
+            m_Output << "\tsetg al\n";
+            m_Output << "\tmovzx rax, al\n";
+            break;
 
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\tcmp rax, rbx\n";
-            generator.m_Output << "\tsete al\n";
-            generator.m_Output << "\tmovzx rax, al\n";
-            generator.push("rax");
-        }
+        case BinOp::Le:
+            m_Output << "\tcmp rax, rbx\n";
+            m_Output << "\tsetle al\n";
+            m_Output << "\tmovzx rax, al\n";
+            break;
 
-        void operator()(const NodeBinExprGe* ge) const {
-            generator.generateExpr(ge->right);
-            generator.generateExpr(ge->left);
+        case BinOp::Lt:
+            m_Output << "\tcmp rax, rbx\n";
+            m_Output << "\tsetl al\n";
+            m_Output << "\tmovzx rax, al\n";
+            break;
 
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\tcmp rax, rbx\n";
-            generator.m_Output << "\tsetge al\n";
-            generator.m_Output << "\tmovzx rax, al\n";
-            generator.push("rax");
-        }
+        case BinOp::Add:
+            m_Output << "\tadd rax, rbx\n";
+            break;
 
-        void operator()(const NodeBinExprGt* gt) const {
-            generator.generateExpr(gt->right);
-            generator.generateExpr(gt->left);
+        case BinOp::Sub:
+            m_Output << "\tsub rax, rbx\n";
+            break;
 
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\tcmp rax, rbx\n";
-            generator.m_Output << "\tsetg al\n";
-            generator.m_Output << "\tmovzx rax, al\n";
-            generator.push("rax");
-        }
+        case BinOp::Mul:
+            m_Output << "\tmul rbx\n";
+            break;
 
-        void operator()(const NodeBinExprLe* le) const {
-            generator.generateExpr(le->right);
-            generator.generateExpr(le->left);
+        case BinOp::Div:
+            m_Output << "\tdiv rbx\n";
+            break; 
 
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\tcmp rax, rbx\n";
-            generator.m_Output << "\tsetle al\n";
-            generator.m_Output << "\tmovzx rax, al\n";
-            generator.push("rax");
-        }
-
-        void operator()(const NodeBinExprLt* lt) const {
-            generator.generateExpr(lt->right);
-            generator.generateExpr(lt->left);
-
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\tcmp rax, rbx\n";
-            generator.m_Output << "\tsetl al\n";
-            generator.m_Output << "\tmovzx rax, al\n";
-            generator.push("rax");
-        }
-
-        void operator()(const NodeBinExprAdd* add) const {
-            generator.generateExpr(add->right);
-            generator.generateExpr(add->left);
-
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\tadd rax, rbx\n";
-            generator.push("rax");
-        }
-
-        void operator()(const NodeBinExprSub* sub) const {
-            generator.generateExpr(sub->right);
-            generator.generateExpr(sub->left);
-
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\tsub rax, rbx\n";
-            generator.push("rax");
-        }
-
-        void operator()(const NodeBinExprMul* mul) const {
-            generator.generateExpr(mul->right);
-            generator.generateExpr(mul->left);
-
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\tmul rbx\n";
-            generator.push("rax");
-        }
-
-        void operator()(const NodeBinExprDiv* div) const {
-            generator.generateExpr(div->right);
-            generator.generateExpr(div->left);
-
-            generator.pop("rax");
-            generator.pop("rbx");
-            generator.m_Output << "\tdiv rbx\n";
-            generator.push("rax");
-        }
-    };
-
-    BinExprVisitor visitor({ .generator = *this });
-    std::visit(visitor, binExpr->var);
+        default:
+            assert(false && "Invalid Binary Operator");
+    }
+    push("rax");
 }
 
 void Generator::generateExpr(const NodeExpr* expr) {

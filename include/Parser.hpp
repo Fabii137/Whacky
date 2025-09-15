@@ -3,88 +3,20 @@
 #include <variant>
 #include "Tokenizer.hpp"
 #include "ArenaAllocator.hpp"
+#include <assert.h>
 
 struct NodeExpr;
 struct NodeStmt;
 struct NodeMaybePred;
 
-struct NodeBinExprOr {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprAnd {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprBand {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprBor {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprXor {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprNeq {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprEq {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprGe {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprGt {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprLe {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprLt {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprAdd {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprSub {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprMul {
-    NodeExpr* left;
-    NodeExpr* right;
-};
-
-struct NodeBinExprDiv {
-    NodeExpr* left;
-    NodeExpr* right;
+enum class BinOp {
+    Or, And, Band, Bor, Xor, Neq, Eq, Ge, Gt, Le, Lt, Add, Sub, Mul, Div 
 };
 
 struct NodeBinExpr {
-    std::variant<NodeBinExprOr*, NodeBinExprAnd*, NodeBinExprBand*, NodeBinExprBor*, NodeBinExprXor*, NodeBinExprNeq*, NodeBinExprEq*, NodeBinExprGe*, NodeBinExprGt*, NodeBinExprLe*, NodeBinExprLt*, NodeBinExprAdd*, NodeBinExprSub*, NodeBinExprMul*, NodeBinExprDiv*> var;
+   BinOp op;
+   NodeExpr* left;
+   NodeExpr* right;
 };
 
 struct NodeTermIntLit {

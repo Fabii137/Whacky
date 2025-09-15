@@ -80,134 +80,78 @@ std::optional<NodeExpr*> Parser::parseExpr(const int minPrec /*=0*/) {
         }
 
         auto binExpr = m_Allocator.alloc<NodeBinExpr>();
-        auto exprLeft2 = m_Allocator.alloc<NodeExpr>();
 
         switch(op.type) {
             case TokenType::_or: {
-                NodeBinExprOr* _or = m_Allocator.alloc<NodeBinExprOr>();
-                exprLeft2->var = exprLeft->var;
-                _or->left = exprLeft2;
-                _or->right = exprRight.value();
-                binExpr->var = _or;
+                binExpr->op = BinOp::Or;
                 break;
             }
             case TokenType::_and: {
-                NodeBinExprAnd* _and = m_Allocator.alloc<NodeBinExprAnd>();
-                exprLeft2->var = exprLeft->var;
-                _and->left = exprLeft2;
-                _and->right = exprRight.value();
-                binExpr->var = _and;
+                binExpr->op = BinOp::And;
                 break;
             }
             case TokenType::bor: {
-                NodeBinExprBor* bor = m_Allocator.alloc<NodeBinExprBor>();
-                exprLeft2->var = exprLeft->var;
-                bor->left = exprLeft2;
-                bor->right = exprRight.value();
-                binExpr->var = bor;
+                binExpr->op = BinOp::Bor;
                 break;
             }
             case TokenType::band: {
-                NodeBinExprBand* band = m_Allocator.alloc<NodeBinExprBand>();
-                exprLeft2->var = exprLeft->var;
-                band->left = exprLeft2;
-                band->right = exprRight.value();
-                binExpr->var = band;
+                binExpr->op = BinOp::Band;
                 break;
             }
             case TokenType::_xor: {
-                NodeBinExprXor* _xor = m_Allocator.alloc<NodeBinExprXor>();
-                exprLeft2->var = exprLeft->var;
-                _xor->left = exprLeft2;
-                _xor->right = exprRight.value();
-                binExpr->var = _xor;
+                binExpr->op = BinOp::Xor;
                 break;
             }
             case TokenType::neq: {
-                NodeBinExprNeq* neq = m_Allocator.alloc<NodeBinExprNeq>();
-                exprLeft2->var = exprLeft->var;
-                neq->left = exprLeft2;
-                neq->right = exprRight.value();
-                binExpr->var = neq;
+                binExpr->op = BinOp::Neq;
                 break;
             }
             case TokenType::eqeq: {
-                NodeBinExprEq* eq = m_Allocator.alloc<NodeBinExprEq>();
-                exprLeft2->var = exprLeft->var;
-                eq->left = exprLeft2;
-                eq->right = exprRight.value();
-                binExpr->var = eq;
+                binExpr->op = BinOp::Eq;
                 break;
             }
             case TokenType::ge: {
-                NodeBinExprGe* ge = m_Allocator.alloc<NodeBinExprGe>();
-                exprLeft2->var = exprLeft->var;
-                ge->left = exprLeft2;
-                ge->right = exprRight.value();
-                binExpr->var = ge;
+                binExpr->op = BinOp::Ge;
                 break;
             }
             case TokenType::gt: {
-                NodeBinExprGt* gt = m_Allocator.alloc<NodeBinExprGt>();
-                exprLeft2->var = exprLeft->var;
-                gt->left = exprLeft2;
-                gt->right = exprRight.value();
-                binExpr->var = gt;
+                binExpr->op = BinOp::Gt;
                 break;
             }
             case TokenType::le: {
-                NodeBinExprLe* le = m_Allocator.alloc<NodeBinExprLe>();
-                exprLeft2->var = exprLeft->var;
-                le->left = exprLeft2;
-                le->right = exprRight.value();
-                binExpr->var = le;
+                binExpr->op = BinOp::Le;
                 break;
             }
             case TokenType::lt: {
-                NodeBinExprLt* lt = m_Allocator.alloc<NodeBinExprLt>();
-                exprLeft2->var = exprLeft->var;
-                lt->left = exprLeft2;
-                lt->right = exprRight.value();
-                binExpr->var = lt;
+                binExpr->op = BinOp::Lt;
                 break;
             }
             case TokenType::plus: {
-                NodeBinExprAdd* add = m_Allocator.alloc<NodeBinExprAdd>();
-                exprLeft2->var = exprLeft->var;
-                add->left = exprLeft2;
-                add->right = exprRight.value();
-                binExpr->var = add;
+                binExpr->op = BinOp::Add;
                 break;
             }
             case TokenType::minus: {
-                NodeBinExprSub* sub = m_Allocator.alloc<NodeBinExprSub>();
-                exprLeft2->var = exprLeft->var;
-                sub->left = exprLeft2;
-                sub->right = exprRight.value();
-                binExpr->var = sub;
+                binExpr->op = BinOp::Sub;
                 break;
             }
             case TokenType::star: {
-                NodeBinExprMul* mul = m_Allocator.alloc<NodeBinExprMul>();
-                exprLeft2->var = exprLeft->var;
-                mul->left = exprLeft2;
-                mul->right = exprRight.value();
-                binExpr->var = mul;
+                binExpr->op = BinOp::Mul;
                 break;
             }
             case TokenType::fslash: {
-                NodeBinExprDiv* div = m_Allocator.alloc<NodeBinExprDiv>();
-                exprLeft2->var = exprLeft->var;
-                div->left = exprLeft2;
-                div->right = exprRight.value();
-                binExpr->var = div;
+                binExpr->op = BinOp::Div;
                 break;
             }
             default:
-                break; 
+                errorExpected("binary operator");
         }
-       
-        exprLeft->var = binExpr;
+
+        binExpr->left = exprLeft;
+        binExpr->right =  exprRight.value();
+
+        auto newExpr = m_Allocator.alloc<NodeExpr>();
+        newExpr->var = binExpr;
+        exprLeft = newExpr;
     }
 
     return exprLeft;
