@@ -37,5 +37,5 @@ private:
     std::stringstream m_Output;
     size_t m_StackSize = 0;
     std::vector<Scope> m_Scopes {};
-    int m_LabelCount = 0;
+    size_t m_LabelCount = 0;
 };
