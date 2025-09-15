@@ -137,7 +137,7 @@ std::vector<Token> Tokenizer::tokenize() {
         } else if(std::isspace(peek().value())) {
             consume();
         } else {
-            std::cerr << "Invalid token" << std::endl;
+            std::cerr << "[Tokenize Error] Invalid token at " << m_Line << ":" << m_Col << std::endl;
             exit(EXIT_FAILURE);
         }
     }
