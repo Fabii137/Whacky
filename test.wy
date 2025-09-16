@@ -4,13 +4,15 @@ gimme z = 1;
 
 // test1
 
-maybe (z == yep) {
+maybe (z) {
     x = x + 1;
 } but (1) { 
     x = x + 2;
 } nah {
     x = x + 3;
 }
+
+yell("hello");
 
 
 /*

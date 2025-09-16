@@ -36,6 +36,8 @@ enum class TokenType {
     int_lit,
     nothin, // void
     vibes, // bool
+    string,
+    _bool,
 
     thingy, // function
     gimmeback, // return
@@ -46,8 +48,6 @@ enum class TokenType {
 
     keepgoing, // while
     roundandround, // for
-
-    _bool,
 
     nothingness, // null
 

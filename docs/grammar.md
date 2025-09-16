@@ -6,6 +6,7 @@
 	gimme ident = [Expr]
     ident = [Expr]
     maybe ([Expr])[Scope][MaybePred]
+    yell([Expr])
     [Scope]
 }
 
@@ -45,6 +46,7 @@
 [Term] -> {
     int_lit
     bool                // yep / nope
+    string
     ident
     ([Expr])
 }

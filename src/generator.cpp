@@ -25,13 +25,19 @@ void Generator::generateTerm(const NodeTerm* term) {
             Var* var = generator.lookupVar(ident->ident.value.value());
             std::string offset = std::format("qword [rsp + {}]", (generator.m_StackSize - var->stackLoc-1) * 8);
             generator.push(offset);
+        }
+
+        void operator()(const NodeTermString* string) const {
+            if(string->string.value.value().size() > 8) {
+                std::cerr << "[Generator Error] Max string size is 8";
+                exit(EXIT_FAILURE);
+            }
             
         }
 
         void operator()(const NodeTermParen* paren) const {
             generator.generateExpr(paren->expr);
         }
-
     };
 
     TermVisitor visitor({ .generator = *this });
@@ -241,6 +247,15 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             } else {
                 generator.m_Output << label << ":\n";
             }
+        }
+
+        void operator()(const NodeStmtYell* yell) const {
+            generator.generateExpr(yell->expr);
+
+            generator.m_Output << "\tmov rax, 1\n";
+            generator.m_Output << "\tmov rdi, 1\n";
+            generator.pop("rsi");
+            generator.m_Output << "\tmov rdx, 8\n";
         }
     };
     StmtVisitor visitor({ .generator = *this });

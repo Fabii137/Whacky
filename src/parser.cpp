@@ -48,6 +48,15 @@ std::optional<NodeTerm*> Parser::parseTerm() {
         return term;
     }
 
+    if (const auto string = tryConsume(TokenType::string)) {
+        NodeTermString* termString = m_Allocator.alloc<NodeTermString>();
+        termString->string = string.value();
+
+        NodeTerm* term = m_Allocator.alloc<NodeTerm>();
+        term->var = termString;
+        return term;
+    }
+
     return {};
 }
 
@@ -224,7 +233,7 @@ std::optional<NodeStmt*> Parser::parseStmt() {
     }
     
     if (tryConsume(TokenType::maybe)) {
-        tryConsume(TokenType::open_paren);
+        tryConsumeErr(TokenType::open_paren);
         NodeStmtMaybe* maybe = m_Allocator.alloc<NodeStmtMaybe>();
         if(const auto expr = parseExpr()) {
             maybe->expr = expr.value();
@@ -244,6 +253,22 @@ std::optional<NodeStmt*> Parser::parseStmt() {
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
         stmt->var = maybe;
+        return stmt;
+    }
+
+    if(tryConsume(TokenType::yell)) {
+        tryConsumeErr(TokenType::open_paren);
+        NodeStmtYell* yell = m_Allocator.alloc<NodeStmtYell>();
+        if(const auto expr = parseExpr()) {
+            yell->expr = expr.value();
+        } else {
+            errorExpected("expr");
+        }
+        tryConsumeErr(TokenType::close_paren);
+        tryConsumeErr(TokenType::semi);
+
+        NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
+        stmt->var = yell;
         return stmt;
     }
 

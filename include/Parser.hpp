@@ -46,6 +46,10 @@ struct NodeTermBool {
     Token _bool;
 };
 
+struct NodeTermString {
+    Token string;
+};
+
 struct NodeTermIdent {
     Token ident;
 };
@@ -55,7 +59,7 @@ struct NodeTermParen {
 };
 
 struct NodeTerm {
-    std::variant<NodeTermIntLit*, NodeTermBool*, NodeTermIdent*, NodeTermParen*> var;
+    std::variant<NodeTermIntLit*, NodeTermBool*, NodeTermString*, NodeTermIdent*, NodeTermParen*> var;
 };
 
 struct NodeExpr {
@@ -86,6 +90,10 @@ struct NodeStmtMaybe {
     std::optional<NodeMaybePred*> pred;
 };
 
+struct NodeStmtYell {
+    NodeExpr* expr;
+};
+
 struct NodeStmtBye {
     NodeExpr* expr;
 };
@@ -101,7 +109,7 @@ struct NodeStmtAssignment {
 };
 
 struct NodeStmt {
-    std::variant<NodeStmtBye*, NodeStmtGimme*, NodeScope*, NodeStmtMaybe*, NodeStmtAssignment*> var;
+    std::variant<NodeStmtBye*, NodeStmtGimme*, NodeScope*, NodeStmtMaybe*, NodeStmtYell*, NodeStmtAssignment*> var;
 };
 
 struct NodeProg {

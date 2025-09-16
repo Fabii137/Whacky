@@ -18,6 +18,8 @@ std::vector<Token> Tokenizer::tokenize() {
 
             if(buf == "bye") {
                 tokens.push_back({ TokenType::bye, m_Line, m_Col });
+            } else if (buf == "yell") {
+                tokens.push_back({ TokenType::yell, m_Line, m_Col });
             } else if (buf == "gimme") {
                 tokens.push_back({ TokenType::gimme, m_Line, m_Col });
             } else if (buf == "yep") {
@@ -96,6 +98,32 @@ std::vector<Token> Tokenizer::tokenize() {
 
             std::cerr << "Invalid token(!)" << std::endl;
             exit(EXIT_FAILURE);
+        } else if (peek().value() == '"') {
+            consume();
+            std::string buf = "";
+
+            while(peek().has_value()) {
+                if(peek().value() == '"') {
+                    consume();
+                    break;
+                }
+                buf += consume();
+            }
+
+            tokens.push_back({ TokenType::string, m_Line, m_Col, buf });
+        } else if (peek().value() == '\'') {
+            consume();
+            std::string buf = "";
+
+            while(peek().has_value()) {
+                if(peek().value() == '\'') {
+                    consume();
+                    break;
+                }
+                buf += consume();
+            }
+
+            tokens.push_back({ TokenType::string, m_Line, m_Col, buf });
         } else if (peek().value() == '>') {
             if (peek(1).has_value() && peek(1).value() == '=') {
                 consume();
