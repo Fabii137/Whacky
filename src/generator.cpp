@@ -227,7 +227,7 @@ void Generator::generateStmt(const NodeStmt* stmt) {
 
             const std::string label = generator.createLabel();
 
-            generator.m_Output << "\ttest rax, rax\n";
+            generator.m_Output << "\tcmp rax, 0\n";
             generator.m_Output << "\tjz " << label << "\n";
             generator.generateScope(maybe->scope);
                 
