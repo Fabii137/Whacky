@@ -204,7 +204,7 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         }
 
         void operator()(const NodeStmtGimme* gimme) const {
-            generator.declareVar(gimme->ident.value.value(),  Var { .stackLoc = generator.m_StackSize });
+            generator.declareVar(gimme->ident.value.value());
             generator.generateExpr(gimme->expr);
         }
 
@@ -300,11 +300,11 @@ Var* Generator::lookupVar(const std::string& name) {
     exit(EXIT_FAILURE);
 }
 
-void Generator::declareVar(const std::string& name, Var var) {
+void Generator::declareVar(const std::string& name) {
     auto& currentScope = m_Scopes.back().vars;
     if (currentScope.contains(name)) {
         std::cerr << "Identifier already declared in this scope: " << name << std::endl;
         exit(EXIT_FAILURE);
     }
-    currentScope.insert({name, var});
+    currentScope.insert({ name, Var{ .stackLoc = m_StackSize } });
 }

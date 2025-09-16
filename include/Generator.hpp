@@ -31,7 +31,7 @@ private:
     void leaveScope();
     std::string createLabel();
     Var* lookupVar(const std::string& name);
-    void declareVar(const std::string& name, Var var);
+    void declareVar(const std::string& name);
 private:
     const NodeProg m_Prog;
     std::stringstream m_Output;
