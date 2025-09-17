@@ -23,12 +23,33 @@ void Generator::generateTerm(const NodeTerm* term) {
 
         void operator()(const NodeTermIdent* ident) const {
             Var* var = generator.lookupVar(ident->ident.value.value());
-            std::string offset = std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc-8);
-            generator.push(offset);
+            
+
+            switch (var->type)
+            {
+                case VarType::Int:
+                case VarType::Bool:
+                    generator.push(std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc));
+                    break;
+                case VarType::String:
+                    generator.push(std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc - 8)); // len
+                    generator.push(std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc - 16)); // ptr
+
+                    break;
+                default:
+                    assert(false && "Invalid Variable Type");
+                    break;
+            }
         }
 
         void operator()(const NodeTermString* string) const {
+            std::string label = generator.findStringLiteral(string->string.value.value());
 
+            generator.m_Output << "\tmov rax, qword [rel " << label << "_len]\n";
+            generator.push("rax");
+
+            generator.m_Output << "\tlea rax, [rel " << label << "]\n";
+            generator.push("rax");
         }
 
         void operator()(const NodeTermParen* paren) const {
@@ -38,6 +59,66 @@ void Generator::generateTerm(const NodeTerm* term) {
 
     TermVisitor visitor({ .generator = *this });
     std::visit(visitor, term->var);
+}
+
+VarType Generator::findType(const NodeExpr* expr) {
+    struct ExprTypeVisitor {
+        Generator& generator;
+        VarType operator()(const NodeTerm* term) const {
+            struct TermTypeVisitor {
+                Generator& generator;
+                VarType operator()(const NodeTermIntLit* intLit) const {
+                    return VarType::Int;
+                }
+
+                VarType operator()(const NodeTermBool* _bool) const {
+                    return VarType::Bool;
+                }
+
+                VarType operator()(const NodeTermIdent* ident) const {
+                    Var* var = generator.lookupVar(ident->ident.value.value());
+                    return var->type;
+                }
+
+                VarType operator()(const NodeTermString* string) const {
+                    return VarType::String;
+                }
+
+                VarType operator()(const NodeTermParen* paren) const {
+                    return generator.findType(paren->expr);
+                }
+            };
+
+            TermTypeVisitor termVisitor({ .generator = generator });
+            return std::visit(termVisitor, term->var);
+        }
+
+        VarType operator()(const NodeBinExpr* binExpr) const {
+            switch (binExpr->op) {
+                case BinOp::Add:
+                case BinOp::Sub:
+                case BinOp::Mul:
+                case BinOp::Div:
+                    return VarType::Int;
+                case BinOp::Eq:
+                case BinOp::Neq:
+                case BinOp::Lt:
+                case BinOp::Le:
+                case BinOp::Gt:
+                case BinOp::Ge:
+                case BinOp::And:
+                case BinOp::Or:
+                case BinOp::Xor:
+                    return VarType::Bool;
+                default:
+                    assert(false && "Unknown binary operator");
+                    return VarType::Int;
+            }
+        }
+    };
+
+    ExprTypeVisitor visitor({ .generator = *this });
+    return std::visit(visitor, expr->var);
 }
 
 void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
@@ -206,7 +287,9 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         }
 
         void operator()(const NodeStmtGimme* gimme) const {
-            generator.declareVar(gimme->ident.value.value());
+            VarType type = generator.findType(gimme->expr);
+
+            generator.declareVar(gimme->ident.value.value(), type);
             generator.generateExpr(gimme->expr);
         }
 
@@ -216,7 +299,7 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.generateExpr(assignment->expr);
             generator.pop("rax");
 
-            generator.m_Output << std::format("\tmov [rsp + {}], rax\n", generator.m_StackSize - var->stackLoc-8);
+            generator.m_Output << std::format("\tmov [rsp + {}], rax\n", generator.m_StackSize - var->stackLoc - var->size);
         }
 
         void operator()(const NodeScope* scope) const {
@@ -260,7 +343,8 @@ void Generator::generateStmt(const NodeStmt* stmt) {
 }
 
 std::string Generator::generateProg() {
-    m_Output << "global _start\n_start:\n";
+    m_Output << "section .text\n\tglobal _start\n_start:\n";
+    m_Data << "section .data\n";
     enterScope();
 
     for(const NodeStmt* stmt : m_Prog.stmts) {
@@ -270,17 +354,17 @@ std::string Generator::generateProg() {
     m_Output << "\tmov rax, 60\n";
     m_Output << "\tmov rdi, 0\n";
     m_Output << "\tsyscall";
-    return m_Output.str();
+    return m_Data.str() +  m_Output.str();
 }
 
-void Generator::push(const std::string& reg) {
+void Generator::push(const std::string& reg, size_t size /*=8*/) {
     m_Output << "\tpush " << reg << "\n";
-    m_StackSize += 8;
+    m_StackSize += size;
 }
 
-void Generator::pop(const std::string& reg) {
+void Generator::pop(const std::string& reg, size_t size /*=8*/) {
     m_Output << "\tpop " << reg << "\n";
-    m_StackSize -= 8;
+    m_StackSize -= size;
 }
 
 void Generator::enterScope() {
@@ -300,6 +384,20 @@ std::string Generator::createLabel() {
     return "label" + std::to_string(m_LabelCount++);
 }
 
+std::string Generator::findStringLiteral(const std::string& value) {
+    if(m_StringLiterals.contains(value)) {
+        return m_StringLiterals.at(value);
+    }
+
+    std::string label = "str" + std::to_string(m_StringLiterals.size());
+    m_StringLiterals.insert({ value, label });
+
+    m_Data << std::format("\t{} db \"{}\", 0\n", label, value);
+    m_Data << std::format("\t{}_len: dq {}\n", label, value.size());
+
+    return label;
+}
+
 Var* Generator::lookupVar(const std::string& name) {    
     for (auto it = m_Scopes.rbegin(); it != m_Scopes.rend(); it++) {
         auto found = it->vars.find(name);
@@ -312,11 +410,20 @@ Var* Generator::lookupVar(const std::string& name) {
     exit(EXIT_FAILURE);
 }
 
-void Generator::declareVar(const std::string& name) {
+void Generator::declareVar(const std::string& name, VarType type) {
     auto& currentScope = m_Scopes.back().vars;
     if (currentScope.contains(name)) {
         std::cerr << "Identifier already declared in this scope: " << name << std::endl;
         exit(EXIT_FAILURE);
     }
-    currentScope.insert({ name, Var{ .stackLoc = m_StackSize } });
+    size_t size = 8;
+    // if (type == VarType::Bool) {
+    //     std::cout << "Declaring bool variable: " << name << "; " << m_StackSize <<  "->" << m_StackSize+1 << std::endl;
+    //     size = 1;
+    //}
+    if (type == VarType::String) {
+        std::cout << "Declaring string variable: " << name << "; " << m_StackSize <<  "->" << m_StackSize+16 << std::endl;
+        size = 16;
+    }
+    currentScope.insert({ name, Var{ .size = size, .type = type, .stackLoc = m_StackSize  } });
 }

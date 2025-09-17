@@ -35,7 +35,6 @@ enum class TokenType {
 
     int_lit,
     nothin, // void
-    vibes, // bool
     string,
     _bool,
 
@@ -82,7 +81,8 @@ inline std::string toString(const TokenType& type) {
         case TokenType::semi: return "';'";
         case TokenType::int_lit: return "int literal";
         case TokenType::nothin: return "'nothin'";
-        case TokenType::vibes: return "'vibes'";
+        case TokenType::string: return "'string'";
+        case TokenType::_bool: return "'bool'";
         case TokenType::thingy: return "'thingy'";
         case TokenType::gimmeback: return "'gimmeback'";
         case TokenType::maybe: return "'maybe'";
@@ -90,7 +90,6 @@ inline std::string toString(const TokenType& type) {
         case TokenType::nah: return "'nah'";
         case TokenType::keepgoing: return "'keepgoing'";
         case TokenType::roundandround: return "'roundandround'";
-        case TokenType::_bool: return "'bool'";
         case TokenType::nothingness: return "'nothingness'";
         case TokenType::yell: return "'yell'";
         default: return "unknown";
