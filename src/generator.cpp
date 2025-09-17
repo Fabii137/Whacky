@@ -23,16 +23,12 @@ void Generator::generateTerm(const NodeTerm* term) {
 
         void operator()(const NodeTermIdent* ident) const {
             Var* var = generator.lookupVar(ident->ident.value.value());
-            std::string offset = std::format("qword [rsp + {}]", (generator.m_StackSize - var->stackLoc-1) * 8);
+            std::string offset = std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc-8);
             generator.push(offset);
         }
 
         void operator()(const NodeTermString* string) const {
-            if(string->string.value.value().size() > 8) {
-                std::cerr << "[Generator Error] Max string size is 8";
-                exit(EXIT_FAILURE);
-            }
-            
+
         }
 
         void operator()(const NodeTermParen* paren) const {
@@ -220,7 +216,7 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.generateExpr(assignment->expr);
             generator.pop("rax");
 
-            generator.m_Output << std::format("\tmov [rsp + {}], rax\n", (generator.m_StackSize - var->stackLoc-1) * 8);
+            generator.m_Output << std::format("\tmov [rsp + {}], rax\n", generator.m_StackSize - var->stackLoc-8);
         }
 
         void operator()(const NodeScope* scope) const {
@@ -255,7 +251,8 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.m_Output << "\tmov rax, 1\n";
             generator.m_Output << "\tmov rdi, 1\n";
             generator.pop("rsi");
-            generator.m_Output << "\tmov rdx, 8\n";
+            generator.pop("rdx");
+            generator.m_Output << "\tsyscall\n";
         }
     };
     StmtVisitor visitor({ .generator = *this });
@@ -278,12 +275,12 @@ std::string Generator::generateProg() {
 
 void Generator::push(const std::string& reg) {
     m_Output << "\tpush " << reg << "\n";
-    m_StackSize++;
+    m_StackSize += 8;
 }
 
 void Generator::pop(const std::string& reg) {
     m_Output << "\tpop " << reg << "\n";
-    m_StackSize--;
+    m_StackSize -= 8;
 }
 
 void Generator::enterScope() {
@@ -295,7 +292,7 @@ void Generator::leaveScope() {
     m_Scopes.pop_back();
     
     const size_t popCount = m_StackSize - scope.stackStart;
-    m_Output << "\tadd rsp, " << popCount * 8 << std::endl;
+    m_Output << "\tadd rsp, " << popCount << std::endl;
     m_StackSize = scope.stackStart;
 }
 

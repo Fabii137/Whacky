@@ -4,7 +4,9 @@
 #include <unordered_map>
 #include "Parser.hpp"
 
+
 struct Var {
+    size_t size = 8;
     size_t stackLoc;
 };
 
