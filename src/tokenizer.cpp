@@ -51,6 +51,13 @@ std::vector<Token> Tokenizer::tokenize() {
             while(peek().has_value() && std::isdigit(peek().value())) {
                 buf.push_back(consume());
             }
+            try {
+                std::stoll(buf);
+            } catch (const std::out_of_range&) {
+                std::cerr << "[Tokenize Error] Integer literal out of range at " << m_Line << ":" << m_Col << std::endl;
+                exit(EXIT_FAILURE);
+            }
+
             tokens.push_back({ TokenType::int_lit, m_Line, m_Col, buf });
             buf.clear();
         } else if(peek().value() == '/' && peek(1).has_value() && peek(1).value() == '/') {
@@ -168,7 +175,7 @@ std::vector<Token> Tokenizer::tokenize() {
             std::cerr << "[Tokenize Error] Invalid token at " << m_Line << ":" << m_Col << std::endl;
             exit(EXIT_FAILURE);
         }
-    }
+    }    
 
     m_Index = 0;
     return tokens;
