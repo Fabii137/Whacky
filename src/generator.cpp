@@ -24,18 +24,17 @@ void Generator::generateTerm(const NodeTerm* term) {
         void operator()(const NodeTermIdent* ident) const {
             Var* var = generator.lookupVar(ident->ident.value.value());
             
-
             switch (var->type)
             {
                 case VarType::Int:
                 case VarType::Bool:
                     generator.push(std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc));
                     break;
-                case VarType::String:
-                    generator.push(std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc - 8)); // len
-                    generator.push(std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc - 16)); // ptr
-
+                case VarType::String: {
+                    generator.push(std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc)); // ptr
+                    generator.push(std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc + 8)); // len
                     break;
+                }
                 default:
                     assert(false && "Invalid Variable Type");
                     break;
@@ -45,10 +44,10 @@ void Generator::generateTerm(const NodeTerm* term) {
         void operator()(const NodeTermString* string) const {
             std::string label = generator.findStringLiteral(string->string.value.value());
 
-            generator.m_Output << "\tmov rax, qword [rel " << label << "_len]\n";
+            generator.m_Output << "\tlea rax, [rel " << label << "]\n";
             generator.push("rax");
 
-            generator.m_Output << "\tlea rax, [rel " << label << "]\n";
+            generator.m_Output << "\tmov rax, qword [rel " << label << "_len]\n";
             generator.push("rax");
         }
 
@@ -297,9 +296,16 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             Var* var = generator.lookupVar(assignment->ident.value.value());
 
             generator.generateExpr(assignment->expr);
-            generator.pop("rax");
 
-            generator.m_Output << std::format("\tmov [rsp + {}], rax\n", generator.m_StackSize - var->stackLoc - var->size);
+            if(var->type == VarType::String) {
+                generator.pop("rax"); // len
+                generator.pop("rbx"); // ptr
+                generator.m_Output << std::format("\tmov [rsp + {}], rbx\n", generator.m_StackSize - var->stackLoc);
+                generator.m_Output << std::format("\tmov [rsp + {}], rax\n", generator.m_StackSize - var->stackLoc + 8);
+            } else {
+                generator.pop("rax");
+                generator.m_Output << std::format("\tmov [rsp + {}], rax\n", generator.m_StackSize - var->stackLoc);
+            } 
         }
 
         void operator()(const NodeScope* scope) const {
@@ -331,10 +337,15 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         void operator()(const NodeStmtYell* yell) const {
             generator.generateExpr(yell->expr);
 
+            auto& currentScope = generator.m_Scopes.back();
+            for (auto varIt = currentScope.vars.begin(); varIt != currentScope.vars.end(); varIt++) {
+                std::cout << varIt->first << " at " << varIt->second.stackLoc << " size " << varIt->second.size << std::endl;
+            }
+
             generator.m_Output << "\tmov rax, 1\n";
             generator.m_Output << "\tmov rdi, 1\n";
-            generator.pop("rsi");
-            generator.pop("rdx");
+            generator.pop("rdx"); // len
+            generator.pop("rsi"); // ptr
             generator.m_Output << "\tsyscall\n";
         }
     };
@@ -366,6 +377,7 @@ void Generator::pop(const std::string& reg, size_t size /*=8*/) {
     m_Output << "\tpop " << reg << "\n";
     m_StackSize -= size;
 }
+
 
 void Generator::enterScope() {
     m_Scopes.emplace_back(Scope{{}, m_StackSize});
@@ -417,13 +429,9 @@ void Generator::declareVar(const std::string& name, VarType type) {
         exit(EXIT_FAILURE);
     }
     size_t size = 8;
-    // if (type == VarType::Bool) {
-    //     std::cout << "Declaring bool variable: " << name << "; " << m_StackSize <<  "->" << m_StackSize+1 << std::endl;
-    //     size = 1;
-    //}
     if (type == VarType::String) {
-        std::cout << "Declaring string variable: " << name << "; " << m_StackSize <<  "->" << m_StackSize+16 << std::endl;
         size = 16;
     }
-    currentScope.insert({ name, Var{ .size = size, .type = type, .stackLoc = m_StackSize  } });
+
+    currentScope.insert({ name, Var{ .size = size, .type = type, .stackLoc = m_StackSize + size } });
 }

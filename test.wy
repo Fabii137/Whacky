@@ -1,16 +1,15 @@
-/*gimme x = 12 / (1 + 2 * 6 - 1); // 1
+gimme x = 12 / (1 + 2 * 6 - 1); // 1
 gimme y = x + 5;
 gimme z = 1;
 
 // test1
-
-maybe (z != 1) {
+maybe (z == 1) {
     x = x + 1;
 } but (1) { 
     x = x + 2;
 } nah {
     x = x + 3;
-}*/
+}
 
 
 /*
@@ -19,7 +18,8 @@ maybe (z != 1) {
     bye(20);
 */
 
-gimme str = 'abc';
+gimme str = 'abcdefghijk';
 yell(str);
+bye(x);
 
-bye(0);
+
