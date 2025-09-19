@@ -96,11 +96,11 @@ TypeInfo TypeChecker::checkBinExpr(const NodeBinExpr* binExpr) {
             
         case BinOp::And:
         case BinOp::Or:
-        case BinOp::Xor:
             return TypeInfo::valid(VarType::Bool);
             
         case BinOp::Band:
         case BinOp::Bor:
+        case BinOp::Xor:
             if (leftType.type == VarType::String || rightType.type == VarType::String) {
                 return TypeInfo::error("Bitwise operations not supported on strings");
             }
