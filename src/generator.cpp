@@ -23,7 +23,6 @@ void Generator::generateTerm(const NodeTerm* term) {
 
         void operator()(const NodeTermIdent* ident) const {
             Var* var = generator.lookupVar(ident->ident.value.value());
-            
             switch (var->type)
             {
                 case VarType::Int:
@@ -31,8 +30,11 @@ void Generator::generateTerm(const NodeTerm* term) {
                     generator.push(std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc));
                     break;
                 case VarType::String: {
-                    generator.push(std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc)); // ptr
-                    generator.push(std::format("qword [rsp + {}]", generator.m_StackSize - var->stackLoc + 8)); // len
+                    size_t ptrOffset = generator.m_StackSize - (var->stackLoc + 8);
+                    generator.push(std::format("qword [rsp + {}]", ptrOffset));
+
+                    size_t lenOffset = generator.m_StackSize - (var->stackLoc + 16);
+                    generator.push(std::format("qword [rsp + {}]", lenOffset));
                     break;
                 }
                 default:
@@ -300,8 +302,12 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             if(var->type == VarType::String) {
                 generator.pop("rax"); // len
                 generator.pop("rbx"); // ptr
-                generator.m_Output << std::format("\tmov [rsp + {}], rbx\n", generator.m_StackSize - var->stackLoc);
-                generator.m_Output << std::format("\tmov [rsp + {}], rax\n", generator.m_StackSize - var->stackLoc + 8);
+
+                size_t ptrOffset = generator.m_StackSize - (var->stackLoc + 8);
+                generator.m_Output << std::format("\tmov [rsp + {}], rbx\n", ptrOffset);
+
+                size_t lenOffset = generator.m_StackSize - (var->stackLoc + 16);
+                generator.m_Output << std::format("\tmov [rsp + {}], rax\n", lenOffset);
             } else {
                 generator.pop("rax");
                 generator.m_Output << std::format("\tmov [rsp + {}], rax\n", generator.m_StackSize - var->stackLoc);
@@ -433,5 +439,5 @@ void Generator::declareVar(const std::string& name, VarType type) {
         size = 16;
     }
 
-    currentScope.insert({ name, Var{ .size = size, .type = type, .stackLoc = m_StackSize + size } });
+    currentScope.insert({ name, Var{ .size = size, .type = type, .stackLoc = m_StackSize } });
 }

@@ -3,7 +3,7 @@ gimme y = x + 5;
 gimme z = 1;
 
 // test1
-maybe (z == 1) {
+maybe (z == 2) {
     x = x + 1;
 } but (1) { 
     x = x + 2;
@@ -19,6 +19,7 @@ maybe (z == 1) {
 */
 
 gimme str = 'abcdefghijk';
+str = 'abc';
 yell(str);
 bye(x);
 
