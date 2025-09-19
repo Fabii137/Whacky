@@ -19,7 +19,7 @@ maybe (z == 2) {
 */
 
 gimme str = 'abcdefghijk';
-str = 'abc';
+str = 'abcfhgfdghdfügo0dfugdf';
 yell(str);
 bye(x);
 
