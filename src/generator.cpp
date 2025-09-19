@@ -219,6 +219,8 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         }
 
         void operator()(const NodeStmtLoop* loop) const {
+            generator.enterScope();
+            
             generator.declareVar(loop->ident.value.value(), VarType::Int);
             Var* var = generator.lookupVar(loop->ident.value.value());
 
@@ -240,6 +242,8 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.m_Output << "\tadd qword [rsp + " << (generator.m_StackSize - var->stackLoc) << "], 1\n";
             generator.m_Output << "\tjmp " << startLabel << "\n";
             generator.m_Output << endLabel << ":\n";
+
+            generator.leaveScope();
         }
     };
     StmtVisitor visitor({ .generator = *this });
