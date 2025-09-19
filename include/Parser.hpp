@@ -94,6 +94,13 @@ struct NodeStmtYell {
     NodeExpr* expr;
 };
 
+struct NodeStmtLoop {
+    Token ident;
+    NodeExpr* start;
+    NodeExpr* end;
+    NodeScope* scope;
+};
+
 struct NodeStmtBye {
     NodeExpr* expr;
 };
@@ -109,7 +116,7 @@ struct NodeStmtAssignment {
 };
 
 struct NodeStmt {
-    std::variant<NodeStmtBye*, NodeStmtGimme*, NodeScope*, NodeStmtMaybe*, NodeStmtYell*, NodeStmtAssignment*> var;
+    std::variant<NodeStmtBye*, NodeStmtGimme*, NodeScope*, NodeStmtMaybe*, NodeStmtYell*, NodeStmtLoop*, NodeStmtAssignment*> var;
 };
 
 struct NodeProg {

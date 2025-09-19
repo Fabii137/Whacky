@@ -34,7 +34,6 @@ enum class TokenType {
     semi,
 
     int_lit,
-    nothin, // void
     string,
     _bool,
 
@@ -45,10 +44,10 @@ enum class TokenType {
     but,// else if
     nah, // else
 
-    keepgoing, // while
-    roundandround, // for
-
-    nothingness, // null
+    why, // while
+    loop, // for
+    in, // loop ... in ...
+    dot,
 
     yell, // print
 };
@@ -80,7 +79,6 @@ inline std::string toString(const TokenType& type) {
         case TokenType::bye: return "'bye'";
         case TokenType::semi: return "';'";
         case TokenType::int_lit: return "int literal";
-        case TokenType::nothin: return "'nothin'";
         case TokenType::string: return "'string'";
         case TokenType::_bool: return "'bool'";
         case TokenType::thingy: return "'thingy'";
@@ -88,9 +86,10 @@ inline std::string toString(const TokenType& type) {
         case TokenType::maybe: return "'maybe'";
         case TokenType::but: return "'but'";
         case TokenType::nah: return "'nah'";
-        case TokenType::keepgoing: return "'keepgoing'";
-        case TokenType::roundandround: return "'roundandround'";
-        case TokenType::nothingness: return "'nothingness'";
+        case TokenType::why: return "'why'";
+        case TokenType::loop: return "'loop'";
+        case TokenType::in: return "'in'";
+        case TokenType::dot: return "'.'";
         case TokenType::yell: return "'yell'";
         default: return "unknown";
     }

@@ -235,6 +235,7 @@ std::optional<NodeStmt*> Parser::parseStmt() {
     if (tryConsume(TokenType::maybe)) {
         tryConsumeErr(TokenType::open_paren);
         NodeStmtMaybe* maybe = m_Allocator.alloc<NodeStmtMaybe>();
+        
         if(const auto expr = parseExpr()) {
             maybe->expr = expr.value();
         } else {
@@ -269,6 +270,44 @@ std::optional<NodeStmt*> Parser::parseStmt() {
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
         stmt->var = yell;
+        return stmt;
+    }
+
+    if(tryConsume(TokenType::loop)) {
+        NodeStmtLoop* loop = m_Allocator.alloc<NodeStmtLoop>();
+        
+        tryConsumeErr(TokenType::open_paren);
+
+        Token ident = tryConsumeErr(TokenType::ident);
+        loop->ident = ident;
+        
+        tryConsumeErr(TokenType::in);
+
+        if(const auto start = parseExpr()) {
+            loop->start = start.value();
+        } else {
+            errorExpected("expression");
+        }
+
+        tryConsumeErr(TokenType::dot);
+        tryConsumeErr(TokenType::dot);
+
+        if(const auto end = parseExpr()) {
+            loop->end = end.value();
+        } else {
+            errorExpected("expression");
+        }
+
+        tryConsumeErr(TokenType::close_paren);
+
+        if(const auto scope = parseScope()) {
+            loop->scope = scope.value();
+        } else {
+            errorExpected("scope");
+        }
+
+        NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
+        stmt->var = loop;
         return stmt;
     }
 

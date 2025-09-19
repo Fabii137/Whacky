@@ -7,6 +7,7 @@
     ident = [Expr]
     maybe ([Expr])[Scope][MaybePred]
     yell([Expr])
+    loop (ident in [Expr]..[Expr])[Scope]
     [Scope]
 }
 

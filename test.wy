@@ -11,6 +11,11 @@ maybe (z == 2) {
     x = x + 3;
 }
 
+loop (i in 0..10) {
+    x = i;
+    yell('hey\n');
+}
+
 
 /*
     l
@@ -19,7 +24,7 @@ maybe (z == 2) {
 */
 
 gimme str = 'abcdefghijk';
-str = 'abcfhgfdghdfügo0dfugdf';
+str = 'abcfhgfdghdfügo0dfugdf\n';
 yell(str);
 bye(x);
 

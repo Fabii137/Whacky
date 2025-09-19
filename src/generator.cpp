@@ -217,6 +217,30 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.pop("rsi"); // ptr
             generator.m_Output << "\tsyscall\n";
         }
+
+        void operator()(const NodeStmtLoop* loop) const {
+            generator.declareVar(loop->ident.value.value(), VarType::Int);
+            Var* var = generator.lookupVar(loop->ident.value.value());
+
+            generator.generateExpr(loop->start);
+            generator.generateVariableStore(var);
+
+            const std::string startLabel = generator.createLabel();
+            const std::string endLabel = generator.createLabel();
+
+            generator.m_Output << startLabel << ":\n";
+
+            generator.generateExpr(loop->end);
+            generator.pop("rax");
+            generator.m_Output << "\tcmp rax, [rsp + " << (generator.m_StackSize - var->stackLoc) << "]\n";
+            generator.m_Output << "\tjle " << endLabel << "\n";
+
+            generator.generateScope(loop->scope);
+
+            generator.m_Output << "\tadd qword [rsp + " << (generator.m_StackSize - var->stackLoc) << "], 1\n";
+            generator.m_Output << "\tjmp " << startLabel << "\n";
+            generator.m_Output << endLabel << ":\n";
+        }
     };
     StmtVisitor visitor({ .generator = *this });
     std::visit(visitor, stmt->var);

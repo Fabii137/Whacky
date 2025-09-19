@@ -26,6 +26,10 @@ std::vector<Token> Tokenizer::tokenize() {
                 tokens.push_back({ TokenType::_bool, m_Line, m_Col, "1" });
             } else if (buf == "nope") {
                 tokens.push_back({ TokenType::_bool, m_Line, m_Col, "0" });
+            } else if (buf == "loop") {
+                tokens.push_back({ TokenType::loop, m_Line, m_Col });
+            } else if (buf == "in") {
+                tokens.push_back({ TokenType::in, m_Line, m_Col });
             } else if (buf == "maybe") {
                 tokens.push_back({ TokenType::maybe, m_Line, m_Col });
             } else if (buf == "but") {
@@ -167,6 +171,9 @@ std::vector<Token> Tokenizer::tokenize() {
         } else if (peek().value() == '}') {
             consume();
             tokens.push_back({ TokenType::close_curly, m_Line, m_Col });
+        } else if (peek().value() == '.') {
+            consume();
+            tokens.push_back({ TokenType::dot, m_Line, m_Col });
         } else if (peek().value() == '\n') {
             consume();
         } else if(std::isspace(peek().value())) {
