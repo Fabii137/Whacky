@@ -7,14 +7,12 @@ why (x < 10) {
     yell("incrementing x\n");
 }
 
-bye(x);
-
-loop (i in 0..10) {
+loop (i in 1..11) {
     x = i;
     yell('hey\n');
 }
 
-maybe (z == 2) {
+maybe (z) {
     x = x + 1;
 } but (1) { 
     x = x + 2;
