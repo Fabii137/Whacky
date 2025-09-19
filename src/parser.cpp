@@ -311,6 +311,30 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         return stmt;
     }
 
+    if(tryConsume(TokenType::why)) {
+        NodeStmtWhy* why = m_Allocator.alloc<NodeStmtWhy>();
+
+        tryConsumeErr(TokenType::open_paren);
+
+        if (const auto expr = parseExpr()) {
+            why->expr = expr.value();
+        } else {
+            errorExpected("expression");
+        }
+
+        tryConsumeErr(TokenType::close_paren);
+
+        if (const auto scope = parseScope()) {
+            why->scope = scope.value();
+        } else {
+            errorExpected("scope");
+        }
+
+        NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
+        stmt->var = why;
+        return stmt;
+    }
+
     return {};
 }
 

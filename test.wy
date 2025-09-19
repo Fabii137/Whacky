@@ -2,18 +2,24 @@ gimme x = 12 / (1 + 2 * 6 - 1); // 1
 gimme y = x + 5;
 gimme z = 1;
 
-// test1
+why (x < 10) {
+    x = x + 1;
+    yell("incrementing x\n");
+}
+
+bye(x);
+
+loop (i in 0..10) {
+    x = i;
+    yell('hey\n');
+}
+
 maybe (z == 2) {
     x = x + 1;
 } but (1) { 
     x = x + 2;
 } nah {
     x = x + 3;
-}
-
-loop (i in 0..10) {
-    x = i;
-    yell('hey\n');
 }
 
 

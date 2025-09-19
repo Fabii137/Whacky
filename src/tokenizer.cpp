@@ -30,6 +30,8 @@ std::vector<Token> Tokenizer::tokenize() {
                 tokens.push_back({ TokenType::loop, m_Line, m_Col });
             } else if (buf == "in") {
                 tokens.push_back({ TokenType::in, m_Line, m_Col });
+            } else if (buf == "why") {
+                tokens.push_back({ TokenType::why, m_Line, m_Col });
             } else if (buf == "maybe") {
                 tokens.push_back({ TokenType::maybe, m_Line, m_Col });
             } else if (buf == "but") {

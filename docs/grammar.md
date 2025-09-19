@@ -5,9 +5,10 @@
 	bye([Expr])
 	gimme ident = [Expr]
     ident = [Expr]
-    maybe ([Expr])[Scope][MaybePred]
+    maybe([Expr])[Scope][MaybePred]
     yell([Expr])
-    loop (ident in [Expr]..[Expr])[Scope]
+    loop(ident in [Expr]..[Expr])[Scope]
+    why([Expr])[Scope]
     [Scope]
 }
 

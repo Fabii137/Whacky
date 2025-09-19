@@ -245,6 +245,24 @@ void Generator::generateStmt(const NodeStmt* stmt) {
 
             generator.leaveScope();
         }
+
+        void operator()(const NodeStmtWhy* why) const {
+            const std::string startLabel = generator.createLabel();
+            const std::string endLabel = generator.createLabel();
+
+            generator.m_Output << startLabel << ":\n";
+
+            generator.generateExpr(why->expr);
+            generator.pop("rax");
+            
+            generator.m_Output << "\tcmp rax, 0\n";
+            generator.m_Output << "\tjz " << endLabel << "\n";
+
+            generator.generateScope(why->scope);
+
+            generator.m_Output << "\tjmp " << startLabel << "\n";
+            generator.m_Output << endLabel << ":\n";
+        }
     };
     StmtVisitor visitor({ .generator = *this });
     std::visit(visitor, stmt->var);

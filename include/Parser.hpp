@@ -101,6 +101,11 @@ struct NodeStmtLoop {
     NodeScope* scope;
 };
 
+struct NodeStmtWhy {
+    NodeExpr* expr;
+    NodeScope* scope;
+};
+
 struct NodeStmtBye {
     NodeExpr* expr;
 };
@@ -116,7 +121,7 @@ struct NodeStmtAssignment {
 };
 
 struct NodeStmt {
-    std::variant<NodeStmtBye*, NodeStmtGimme*, NodeScope*, NodeStmtMaybe*, NodeStmtYell*, NodeStmtLoop*, NodeStmtAssignment*> var;
+    std::variant<NodeStmtBye*, NodeStmtGimme*, NodeScope*, NodeStmtMaybe*, NodeStmtYell*, NodeStmtLoop*, NodeStmtWhy*, NodeStmtAssignment*> var;
 };
 
 struct NodeProg {
