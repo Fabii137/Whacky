@@ -51,8 +51,14 @@ TypeInfo TypeChecker::checkBinExpr(const NodeBinExpr* binExpr) {
     TypeInfo leftType = checkExpr(binExpr->left);
     TypeInfo rightType = checkExpr(binExpr->right);
     
-    if (!leftType.isValid) return leftType;
-    if (!rightType.isValid) return rightType;
+    if (!leftType.isValid)  {
+        return leftType;
+    }
+    
+    if (!rightType.isValid) {
+        return rightType;
+    }
+    
     
     switch (binExpr->op) {
         case BinOp::Add:
