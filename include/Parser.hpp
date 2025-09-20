@@ -136,7 +136,7 @@ public:
     std::optional<NodeScope*> parseScope();
     std::optional<NodeMaybePred*> parseMaybePred();
     std::optional<NodeStmt*> parseStmt();
-    std::optional<NodeProg> parseProg();
+    NodeProg parseProg();
 private:
     std::optional<Token> peek(const int offset = 0) const;
     Token consume();

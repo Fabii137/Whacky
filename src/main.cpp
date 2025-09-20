@@ -26,15 +26,10 @@ int main(int argc, char* argv[]) {
     std::vector<Token> tokens = tokenizer.tokenize();
 
     Parser parser(std::move(tokens));
-    std::optional<NodeProg> prog = parser.parseProg();
-
-    if(!prog.has_value()) {
-        std::cerr << "Invalid program" << std::endl;
-        exit(EXIT_FAILURE);
-    }
+    NodeProg prog = parser.parseProg();
     
     {
-        Generator generator(std::move(prog.value()));
+        Generator generator(std::move(prog));
         std::fstream out("out.asm", std::ios::out);
         out << generator.generateProg();
     }

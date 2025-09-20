@@ -338,7 +338,7 @@ std::optional<NodeStmt*> Parser::parseStmt() {
     return {};
 }
 
-std::optional<NodeProg> Parser::parseProg() {
+NodeProg Parser::parseProg() {
     NodeProg prog;
     while(peek().has_value()) {
         if (const auto stmt = parseStmt()) {
