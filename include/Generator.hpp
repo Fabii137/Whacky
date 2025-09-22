@@ -28,7 +28,7 @@ private:
     
     std::string createLabel();
     std::string findStringLiteral(const std::string& value);
-    static const std::string escapeString(const std::string& input);
+    static const std::pair<std::string, size_t> escapeString(const std::string& input);
     void generateVariableLoad(const Var* var);
     void generateVariableStore(const Var* var);
     

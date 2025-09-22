@@ -318,29 +318,39 @@ std::string Generator::findStringLiteral(const std::string& value) {
 
     std::string label = "str" + std::to_string(m_StringLiterals.size());
     m_StringLiterals.insert({ value, label });
-    m_Data << std::format("\t{} db \"{}\", 0\n", label, escapeString(value));
-    m_Data << std::format("\t{}_len: dq {}\n", label, value.size());
+
+    auto [escaped, length] = escapeString(value);
+    m_Data << std::format("\t{} db \"{}\", 0\n", label, escaped);
+    m_Data << std::format("\t{}_len: dq {}\n", label, length);
 
     return label;
 }
 
-const std::string Generator::escapeString(const std::string& input) {
+const std::pair<std::string, size_t> Generator::escapeString(const std::string& input) {
     std::string out;
+    size_t length = 0;
     for (size_t i = 0; i < input.size(); i++) {
         if (input[i] == '\\' && i + 1 < input.size()) {
             switch (input[i+1]) {
-                case 'n': out += "\", 10, \""; i++; break;
-                case 't': out += "\", 9, \""; i++; break;
-                case 'r': out += "\", 13, \""; i++; break;
-                case '\\': out += "\", 92, \""; i++; break;
-                case '"': out += "\", 34, \""; i++; break;
-                default: out.push_back(input[i]);
+                case 'n': out += "\", 10, \""; i++;
+                    break;
+                case 't': out += "\", 9, \""; i++;
+                    break;
+                case 'r': out += "\", 13, \""; i++;
+                    break;
+                case '\\': out += "\", 92, \""; i++;
+                    break;
+                case '"': out += "\", 34, \""; i++;
+                    break;
+                default:
+                    out.push_back(input[i]);
             }
         } else {
             out.push_back(input[i]);
         }
+        length++;
     }
-    return out;
+    return { out, length };
 }
 
 void Generator::generateVariableLoad(const Var* var) {
