@@ -33,7 +33,8 @@ void Generator::generateTerm(const NodeTerm* term) {
             generator.m_Output << "\tlea rax, [rel " << label << "]\n";
             generator.push("rax");
 
-            generator.m_Output << "\tmov rax, qword [rel " << label << "_len]\n";
+            // generator.m_Output << "\tmov rax, qword [rel " << label << "_len]\n";
+            generator.m_Output << "\tmov rax, "<< label << "_len\n";
             generator.push("rax");
         }
 
@@ -319,16 +320,14 @@ std::string Generator::findStringLiteral(const std::string& value) {
     std::string label = "str" + std::to_string(m_StringLiterals.size());
     m_StringLiterals.insert({ value, label });
 
-    auto [escaped, length] = escapeString(value);
-    m_Data << std::format("\t{} db \"{}\", 0\n", label, escaped);
-    m_Data << std::format("\t{}_len: dq {}\n", label, length);
+    m_Data << std::format("\t{} db \"{}\", 0\n", label, escapeString(value));
+    m_Data << std::format("\t{}_len: equ $- {}\n", label, label);
 
     return label;
 }
 
-const std::pair<std::string, size_t> Generator::escapeString(const std::string& input) {
+const std::string Generator::escapeString(const std::string& input) {
     std::string out;
-    size_t length = 0;
     for (size_t i = 0; i < input.size(); i++) {
         if (input[i] == '\\' && i + 1 < input.size()) {
             switch (input[i+1]) {
@@ -348,9 +347,8 @@ const std::pair<std::string, size_t> Generator::escapeString(const std::string& 
         } else {
             out.push_back(input[i]);
         }
-        length++;
     }
-    return { out, length };
+    return out;
 }
 
 void Generator::generateVariableLoad(const Var* var) {
