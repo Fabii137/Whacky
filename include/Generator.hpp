@@ -13,6 +13,7 @@ public:
     void generateBinExpr(const NodeBinExpr* binExpr);
     void generateScope(const NodeScope* scope);
     void generateMaybePred(const NodeMaybePred* pred, const std::string& endLabel);
+    void generateThingy(const NodeStmtThingy* thingy);
     void generateStmt(const NodeStmt* stmt);
     std::string generateProg();
     
@@ -26,6 +27,9 @@ private:
     void declareVar(const std::string& name, VarType type);
     Var* lookupVar(const std::string& name);
     
+    void declareThingy(const std::string& name, const Thingy& thingy);
+    const Thingy* lookupThingy(const std::string& name);
+
     std::string createLabel(const std::string& name = "label");
     std::optional<std::string> findStringLiteral(const std::string& value, const bool& create = true);
     static const std::string escapeString(const std::string& input);
@@ -33,7 +37,6 @@ private:
     void generateVariableStore(const Var* var);
     
     void error(const std::string& msg);
-    
 private:
     const NodeProg m_Prog;
     std::stringstream m_Output;

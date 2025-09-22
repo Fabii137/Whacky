@@ -18,8 +18,15 @@ struct Var {
     size_t stackLoc;
 };
 
+struct Thingy {
+    std::vector<VarType> paramTypes;
+    VarType returnType;
+    std::string label;
+};
+
 struct Scope {
     std::unordered_map<std::string, Var> vars;
+    std::unordered_map<std::string, Thingy> functions;
     size_t stackStart;
 };
 
@@ -47,5 +54,6 @@ public:
     
 private:
     const Var* lookupVar(const std::string& name);
+    const Thingy* lookupThingy(const std::string& name);
     const std::vector<Scope>& m_Scopes;
 };

@@ -1,4 +1,5 @@
 #include "TypeChecker.hpp"
+#include <format>
 
 TypeChecker::TypeChecker(const std::vector<Scope>& scopes) : m_Scopes(scopes) {
 
@@ -42,19 +43,27 @@ TypeInfo TypeChecker::checkTerm(const NodeTerm* term) {
             return checker.checkExpr(paren->expr);
         }
         TypeInfo operator()(const NodeTermCall* call) const {
-            const Var* var = checker.lookupVar(call->ident.value.value());
-            if(!var) {
+            const Thingy* thingy = checker.lookupThingy(call->ident.value.value());
+            if (!thingy) {
                 return TypeInfo::error("Undeclared function: " + call->ident.value.value());
             }
 
-            for(const NodeExpr* arg : call->args) {
-                TypeInfo argType = checker.checkExpr(arg);
+            if (call->args.size() != thingy->paramTypes.size()) {
+                return TypeInfo::error(std::format("Argument count mismatch for function: {}. Expected: {}. Count: {}", call->ident.value.value(), thingy->paramTypes.size(), call->args.size()));
+            }
+
+            for(size_t i = 0; i < call->args.size(); i++) {
+                TypeInfo argType = checker.checkExpr(call->args[i]);
                 if(!argType.isValid) {
                     return argType;
                 }
+
+                if(argType.type != thingy->paramTypes[i]) {
+                    return TypeInfo::error(std::format("Type mismatch in argument {} of function {}", i, call->ident.value.value()));
+                }
             }
 
-            return TypeInfo::valid(var->type);
+            return TypeInfo::valid(thingy->returnType);
         }
     };
     
@@ -136,6 +145,16 @@ const Var* TypeChecker::lookupVar(const std::string& name) {
     for (auto it = m_Scopes.rbegin(); it != m_Scopes.rend(); it++) {
         auto found = it->vars.find(name);
         if (found != it->vars.end()) {
+            return &found->second;
+        }
+    }
+    return nullptr;
+}
+
+const Thingy* TypeChecker::lookupThingy(const std::string& name) {
+     for (auto it = m_Scopes.rbegin(); it != m_Scopes.rend(); ++it) {
+        auto found = it->functions.find(name);
+        if (found != it->functions.end()) {
             return &found->second;
         }
     }

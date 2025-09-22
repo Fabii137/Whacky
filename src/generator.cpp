@@ -46,17 +46,11 @@ void Generator::generateTerm(const NodeTerm* term) {
                 generator.generateExpr(*it);
             }
 
-            const auto thingyLabel = generator.findStringLiteral(call->ident.value.value(), false);
-            if (!thingyLabel.has_value()) {
-                std::cerr << "[Generator] Undeclared function: " << call->ident.value.value() << std::endl;
-                exit(EXIT_FAILURE);
+            const Thingy* thingy = generator.lookupThingy(call->ident.value.value());
+            if(!thingy) {
+                generator.error("Undeclared function: " + call->ident.value.value());
             }
-            generator.m_Output << "\tcall " << thingyLabel.value() << "\n";
-
-            if(!call->args.empty()) {
-                generator.m_Output << "\tadd rsp, " << call->args.size() * 8 << "\n";
-                generator.m_StackSize -= call->args.size() * 8;
-            }
+            generator.m_Output << "\tcall " << thingy->label << "\n";
 
             generator.push("rax");
         }
@@ -175,6 +169,24 @@ void Generator::generateMaybePred(const NodeMaybePred* pred, const std::string& 
     std::visit(visitor, pred->var);
 }
 
+void Generator::generateThingy(const NodeStmtThingy* thingy) {
+    std::vector<VarType> params(thingy->params.size(), VarType::Int);
+
+    Thingy th {.paramTypes = params, .returnType = VarType::Int, .label = createLabel(thingy->name.value.value()) };
+
+    declareThingy(thingy->name.value.value(), th);
+
+    m_Output << th.label << ":\n";
+    enterScope();
+    for(const Token& param : thingy->params) {
+        declareVar(param.value.value(), VarType::Int); //temp
+    }
+
+    generateScope(thingy->scope);
+    leaveScope();
+    m_Output << "\tret\n";
+}
+
 void Generator::generateStmt(const NodeStmt* stmt) {
     struct StmtVisitor {
         Generator& generator;
@@ -239,18 +251,7 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         }
 
         void operator()(const NodeStmtThingy* thingy) const {
-            std::string label = generator.createLabel("thingy");
-            generator.m_Output << label << ":\n";
-            generator.declareVar(thingy->name.value.value(), VarType::Int);
-
-            generator.enterScope();
-            for(const Token& param : thingy->params) {
-                generator.declareVar(param.value.value(), VarType::Int);
-            }
-
-            generator.generateScope(thingy->scope);
-            generator.leaveScope();
-            generator.m_Output << "\tret\n";
+            generator.generateThingy(thingy);
         }
 
         void operator()(const NodeStmtGimmeback* gimmeback) const {
@@ -337,7 +338,7 @@ void Generator::pop(const std::string& reg, size_t size /*=8*/) {
 
 
 void Generator::enterScope() {
-    m_Scopes.emplace_back(Scope{{}, m_StackSize});
+    m_Scopes.emplace_back(Scope{{}, {}, m_StackSize});
 }
 
 void Generator::leaveScope() {
@@ -347,6 +348,48 @@ void Generator::leaveScope() {
     const size_t popCount = m_StackSize - scope.stackStart;
     m_Output << "\tadd rsp, " << popCount << std::endl;
     m_StackSize = scope.stackStart;
+}
+
+Var* Generator::lookupVar(const std::string& name) {    
+    for (auto it = m_Scopes.rbegin(); it != m_Scopes.rend(); it++) {
+        auto found = it->vars.find(name);
+        if(found != it->vars.end()) {
+            return &found->second;
+        }
+    }
+
+    error("Undeclared identifier: " + name);
+    return nullptr;
+}
+
+void Generator::declareVar(const std::string& name, VarType type) {
+    auto& currentScope = m_Scopes.back().vars;
+    if (currentScope.contains(name)) {
+        error("Identifier already declared in this scope: " + name);
+    }
+    size_t size = 8;
+    if (type == VarType::String) {
+        size = 16;
+    }
+
+    currentScope.insert({ name, Var{ .size = size, .type = type, .stackLoc = m_StackSize } });
+}
+
+void Generator::declareThingy(const std::string& name, const Thingy& thingy) {
+    auto& currentScope = m_Scopes.back().functions;
+    if(currentScope.contains(name)) {
+        error("Function already declared in this scope: " + name);
+    }
+    currentScope.insert({ name, thingy });
+}
+const Thingy* Generator::lookupThingy(const std::string& name) {
+    for(auto it = m_Scopes.rbegin(); it != m_Scopes.rend(); it++) {
+        auto found = it->functions.find(name);
+        if(found != it->functions.end()) {
+            return &found->second;
+        }
+    }
+    return nullptr;
 }
 
 std::string Generator::createLabel(const std::string& name /*="label"*/) {
@@ -428,31 +471,6 @@ void Generator::generateVariableStore(const Var* var) {
         pop("rax");
         m_Output << std::format("\tmov [rsp + {}], rax\n", m_StackSize - var->stackLoc);
     }
-}
-
-Var* Generator::lookupVar(const std::string& name) {    
-    for (auto it = m_Scopes.rbegin(); it != m_Scopes.rend(); it++) {
-        auto found = it->vars.find(name);
-        if(found != it->vars.end()) {
-            return &found->second;
-        }
-    }
-
-    error("Undeclared identifier: " + name);
-    return nullptr;
-}
-
-void Generator::declareVar(const std::string& name, VarType type) {
-    auto& currentScope = m_Scopes.back().vars;
-    if (currentScope.contains(name)) {
-        error("Identifier already declared in this scope: " + name);
-    }
-    size_t size = 8;
-    if (type == VarType::String) {
-        size = 16;
-    }
-
-    currentScope.insert({ name, Var{ .size = size, .type = type, .stackLoc = m_StackSize } });
 }
 
 void Generator::error(const std::string& msg) {
