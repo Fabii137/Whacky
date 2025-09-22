@@ -26,8 +26,8 @@ private:
     void declareVar(const std::string& name, VarType type);
     Var* lookupVar(const std::string& name);
     
-    std::string createLabel();
-    std::string findStringLiteral(const std::string& value);
+    std::string createLabel(const std::string& name = "label");
+    std::optional<std::string> findStringLiteral(const std::string& value, const bool& create = true);
     static const std::string escapeString(const std::string& input);
     void generateVariableLoad(const Var* var);
     void generateVariableStore(const Var* var);

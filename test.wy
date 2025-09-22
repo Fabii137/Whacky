@@ -20,6 +20,12 @@ maybe (z) {
     x = x + 3;
 }
 
+thingy test(num) {
+    gimmeback num+1;
+}
+
+gimme lol = test(1);
+
 
 /*
     l

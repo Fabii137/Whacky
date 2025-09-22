@@ -26,6 +26,10 @@ std::vector<Token> Tokenizer::tokenize() {
                 tokens.push_back({ TokenType::_bool, m_Line, m_Col, "1" });
             } else if (buf == "nope") {
                 tokens.push_back({ TokenType::_bool, m_Line, m_Col, "0" });
+            } else if (buf == "thingy") {
+                tokens.push_back({ TokenType::thingy, m_Line, m_Col });
+            } else if (buf == "gimmeback") {
+                tokens.push_back({ TokenType::gimmeback, m_Line, m_Col });
             } else if (buf == "loop") {
                 tokens.push_back({ TokenType::loop, m_Line, m_Col });
             } else if (buf == "in") {
@@ -176,6 +180,9 @@ std::vector<Token> Tokenizer::tokenize() {
         } else if (peek().value() == '.') {
             consume();
             tokens.push_back({ TokenType::dot, m_Line, m_Col });
+        } else if (peek().value() == ',') {
+            consume();
+            tokens.push_back({ TokenType::comma, m_Line, m_Col });
         } else if (peek().value() == '\n') {
             consume();
         } else if(std::isspace(peek().value())) {

@@ -41,6 +41,21 @@ TypeInfo TypeChecker::checkTerm(const NodeTerm* term) {
         TypeInfo operator()(const NodeTermParen* paren) const {
             return checker.checkExpr(paren->expr);
         }
+        TypeInfo operator()(const NodeTermCall* call) const {
+            const Var* var = checker.lookupVar(call->ident.value.value());
+            if(!var) {
+                return TypeInfo::error("Undeclared function: " + call->ident.value.value());
+            }
+
+            for(const NodeExpr* arg : call->args) {
+                TypeInfo argType = checker.checkExpr(arg);
+                if(!argType.isValid) {
+                    return argType;
+                }
+            }
+
+            return TypeInfo::valid(var->type);
+        }
     };
     
     TermTypeVisitor visitor{*this};

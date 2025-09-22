@@ -8,9 +8,13 @@
     maybe([Expr])[Scope][MaybePred]
     yell([Expr])
     loop(ident in [Expr]..[Expr])[Scope]
+    thingy ident([ParamList]?)[Scope]
+    gimmeback [Expr]
     why([Expr])[Scope]
     [Scope]
 }
+
+[ParamList] -> ident (, ident)*
 
 [Scope] -> {
    {[Stmt]*}
@@ -51,6 +55,9 @@
     string
     ident
     ([Expr])
+    ident([ArgList]?)
 }
+
+[ArgList] -> [Expr] (, [Expr])*
 
 ```

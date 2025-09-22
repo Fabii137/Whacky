@@ -48,6 +48,7 @@ enum class TokenType {
     loop, // for
     in, // loop ... in ...
     dot,
+    comma,
 
     yell, // print
 };
@@ -90,6 +91,7 @@ inline std::string toString(const TokenType& type) {
         case TokenType::loop: return "'loop'";
         case TokenType::in: return "'in'";
         case TokenType::dot: return "'.'";
+        case TokenType::comma: return "','";
         case TokenType::yell: return "'yell'";
         default: return "unknown";
     }

@@ -6,10 +6,6 @@
 #include "ArenaAllocator.hpp"
 #include <assert.h>
 
-struct NodeExpr;
-struct NodeStmt;
-struct NodeMaybePred;
-
 enum class BinOp {
     Or, And, Band, Bor, Xor, Neq, Eq, Ge, Gt, Le, Lt, Add, Sub, Mul, Div 
 };
@@ -31,6 +27,10 @@ inline static const std::unordered_map<TokenType, BinOp> tokenTypeToBinOp = {
     { TokenType::star, BinOp::Mul },
     { TokenType::fslash, BinOp::Div },
 };
+
+struct NodeExpr;
+struct NodeStmt;
+struct NodeMaybePred;
 
 struct NodeBinExpr {
    BinOp op;
@@ -58,8 +58,13 @@ struct NodeTermParen {
     NodeExpr* expr;
 };
 
+struct NodeTermCall {
+    Token ident;
+    std::vector<NodeExpr*> args;
+};
+
 struct NodeTerm {
-    std::variant<NodeTermIntLit*, NodeTermBool*, NodeTermString*, NodeTermIdent*, NodeTermParen*> var;
+    std::variant<NodeTermIntLit*, NodeTermBool*, NodeTermString*, NodeTermIdent*, NodeTermParen*, NodeTermCall*> var;
 };
 
 struct NodeExpr {
@@ -94,6 +99,16 @@ struct NodeStmtYell {
     NodeExpr* expr;
 };
 
+struct NodeStmtThingy {
+    Token name;
+    std::vector<Token> params;
+    NodeScope* scope;
+};
+
+struct NodeStmtGimmeback {
+    NodeExpr* expr;
+};
+
 struct NodeStmtLoop {
     Token ident;
     NodeExpr* start;
@@ -121,7 +136,7 @@ struct NodeStmtAssignment {
 };
 
 struct NodeStmt {
-    std::variant<NodeStmtBye*, NodeStmtGimme*, NodeScope*, NodeStmtMaybe*, NodeStmtYell*, NodeStmtLoop*, NodeStmtWhy*, NodeStmtAssignment*> var;
+    std::variant<NodeStmtBye*, NodeStmtGimme*, NodeScope*, NodeStmtMaybe*, NodeStmtYell*, NodeStmtThingy*, NodeStmtGimmeback*, NodeStmtLoop*, NodeStmtWhy*, NodeStmtAssignment*> var;
 };
 
 struct NodeProg {

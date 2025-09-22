@@ -16,12 +16,31 @@ std::optional<NodeTerm*> Parser::parseTerm() {
     } 
 
     if (const auto ident = tryConsume(TokenType::ident)) {
+        if (tryConsume(TokenType::open_paren)) {
+            // thingy call
+            NodeTermCall* termCall = m_Allocator.alloc<NodeTermCall>();
+            termCall->ident = ident.value();
+
+            while(const auto expr = parseExpr()) {
+                termCall->args.push_back(expr.value());
+                if(!tryConsume(TokenType::comma)) {
+                    break;
+                }
+            }
+
+            tryConsumeErr(TokenType::close_paren);
+            NodeTerm* term = m_Allocator.alloc<NodeTerm>();
+            term->var = termCall;
+            return term;
+        }
+
         NodeTermIdent* termIdent = m_Allocator.alloc<NodeTermIdent>();
         termIdent->ident = ident.value();
 
         NodeTerm* term = m_Allocator.alloc<NodeTerm>();
         term->var = termIdent;
         return term;
+        
     }
 
     if (const auto openParen = tryConsume(TokenType::open_paren)) {
@@ -56,6 +75,7 @@ std::optional<NodeTerm*> Parser::parseTerm() {
         term->var = termString;
         return term;
     }
+
 
     return {};
 }
@@ -270,6 +290,48 @@ std::optional<NodeStmt*> Parser::parseStmt() {
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
         stmt->var = yell;
+        return stmt;
+    }
+
+    if(tryConsume(TokenType::thingy)) {
+        NodeStmtThingy* thingy = m_Allocator.alloc<NodeStmtThingy>();
+
+        Token name = tryConsumeErr(TokenType::ident);
+        thingy->name = name;
+
+        tryConsumeErr(TokenType::open_paren);
+        while(const auto ident = tryConsume(TokenType::ident)) {
+            thingy->params.push_back(ident.value());
+            if(!tryConsume(TokenType::comma).has_value()) {
+                break;
+            }
+        }
+        tryConsumeErr(TokenType::close_paren);
+
+        if(const auto scope = parseScope()) {
+            thingy->scope = scope.value();
+        } else {
+            errorExpected("scope");
+        }
+
+        NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
+        stmt->var = thingy;
+        return stmt;
+    }
+
+    if(tryConsume(TokenType::gimmeback)) {
+        NodeStmtGimmeback* gimmeback = m_Allocator.alloc<NodeStmtGimmeback>();
+
+        if(auto expr = parseExpr()) {
+            gimmeback->expr = expr.value();
+        } else {
+            errorExpected("expression");
+        }
+
+        tryConsumeErr(TokenType::semi);
+
+        NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
+        stmt->var = gimmeback;
         return stmt;
     }
 

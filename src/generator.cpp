@@ -28,18 +28,37 @@ void Generator::generateTerm(const NodeTerm* term) {
         }
 
         void operator()(const NodeTermString* string) const {
-            std::string label = generator.findStringLiteral(string->string.value.value());
+            auto label = generator.findStringLiteral(string->string.value.value());
 
-            generator.m_Output << "\tlea rax, [rel " << label << "]\n";
+            generator.m_Output << "\tlea rax, [rel " << label.value() << "]\n";
             generator.push("rax");
 
-            // generator.m_Output << "\tmov rax, qword [rel " << label << "_len]\n";
-            generator.m_Output << "\tmov rax, "<< label << "_len\n";
+            generator.m_Output << "\tmov rax, "<< label.value() << "_len\n";
             generator.push("rax");
         }
 
         void operator()(const NodeTermParen* paren) const {
             generator.generateExpr(paren->expr);
+        }
+
+        void operator()(const NodeTermCall* call) const {
+            for(auto it = call->args.rbegin(); it != call->args.rend(); it++) {
+                generator.generateExpr(*it);
+            }
+
+            const auto thingyLabel = generator.findStringLiteral(call->ident.value.value(), false);
+            if (!thingyLabel.has_value()) {
+                std::cerr << "[Generator] Undeclared function: " << call->ident.value.value() << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            generator.m_Output << "\tcall " << thingyLabel.value() << "\n";
+
+            if(!call->args.empty()) {
+                generator.m_Output << "\tadd rsp, " << call->args.size() * 8 << "\n";
+                generator.m_StackSize -= call->args.size() * 8;
+            }
+
+            generator.push("rax");
         }
     };
 
@@ -136,7 +155,7 @@ void Generator::generateMaybePred(const NodeMaybePred* pred, const std::string& 
             generator.generateExpr(but->expr);
             generator.pop("rax");
 
-            const std::string label = generator.createLabel();
+            const std::string label = generator.createLabel("maybe_pred");
 
             generator.m_Output << "\tcmp rax, 0\n";
             generator.m_Output << "\tjz " << label << "\n";
@@ -191,7 +210,7 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.generateExpr(maybe->expr);
             generator.pop("rax");
 
-            const std::string label = generator.createLabel();
+            const std::string label = generator.createLabel("maybe");
 
             generator.m_Output << "\tcmp rax, 0\n";
             generator.m_Output << "\tjz " << label << "\n";
@@ -199,7 +218,7 @@ void Generator::generateStmt(const NodeStmt* stmt) {
                 
             
             if(maybe->pred.has_value()) {
-                const std::string& endLabel = generator.createLabel();
+                const std::string& endLabel = generator.createLabel("maybe_pred");
                 generator.m_Output << "\tjmp " << endLabel << "\n";
                 generator.m_Output << label << ":\n";
                 generator.generateMaybePred(maybe->pred.value(), endLabel);
@@ -219,6 +238,28 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.m_Output << "\tsyscall\n";
         }
 
+        void operator()(const NodeStmtThingy* thingy) const {
+            std::string label = generator.createLabel("thingy");
+            generator.m_Output << label << ":\n";
+            generator.declareVar(thingy->name.value.value(), VarType::Int);
+
+            generator.enterScope();
+            for(const Token& param : thingy->params) {
+                generator.declareVar(param.value.value(), VarType::Int);
+            }
+
+            generator.generateScope(thingy->scope);
+            generator.leaveScope();
+            generator.m_Output << "\tret\n";
+        }
+
+        void operator()(const NodeStmtGimmeback* gimmeback) const {
+            generator.generateExpr(gimmeback->expr);
+
+            generator.pop("rax");
+            generator.m_Output << "\tret\n";
+        }
+
         void operator()(const NodeStmtLoop* loop) const {
             generator.enterScope();
             
@@ -228,8 +269,8 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.generateExpr(loop->start);
             generator.generateVariableStore(var);
 
-            const std::string startLabel = generator.createLabel();
-            const std::string endLabel = generator.createLabel();
+            const std::string startLabel = generator.createLabel("loop_start");
+            const std::string endLabel = generator.createLabel("loop_end");
 
             generator.m_Output << startLabel << ":\n";
 
@@ -248,8 +289,8 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         }
 
         void operator()(const NodeStmtWhy* why) const {
-            const std::string startLabel = generator.createLabel();
-            const std::string endLabel = generator.createLabel();
+            const std::string startLabel = generator.createLabel("why_start");
+            const std::string endLabel = generator.createLabel("why_end");
 
             generator.m_Output << startLabel << ":\n";
 
@@ -308,13 +349,17 @@ void Generator::leaveScope() {
     m_StackSize = scope.stackStart;
 }
 
-std::string Generator::createLabel() {
-    return "label" + std::to_string(m_LabelCount++);
+std::string Generator::createLabel(const std::string& name /*="label"*/) {
+    return name + std::to_string(m_LabelCount++);
 }
 
-std::string Generator::findStringLiteral(const std::string& value) {
+std::optional<std::string> Generator::findStringLiteral(const std::string& value, const bool& create /*=true*/) {
     if(m_StringLiterals.contains(value)) {
         return m_StringLiterals.at(value);
+    }
+
+    if(!create) {
+        return {};
     }
 
     std::string label = "str" + std::to_string(m_StringLiterals.size());
