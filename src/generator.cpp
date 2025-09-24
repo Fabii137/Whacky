@@ -172,7 +172,7 @@ void Generator::generateMaybePred(const NodeMaybePred* pred, const std::string& 
 void Generator::generateThingy(const NodeStmtThingy* thingy) {
     std::vector<VarType> params(thingy->params.size(), VarType::Int);
 
-    Thingy th {.paramTypes = params, .returnType = VarType::Int, .label = createLabel(thingy->name.value.value()) };
+    Thingy th {.paramTypes = params, .returnType = VarType::Int, .label = createLabel(thingy->name.value.value()) }; // temp
 
     declareThingy(thingy->name.value.value(), th);
 
