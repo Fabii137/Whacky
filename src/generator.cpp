@@ -2,9 +2,9 @@
 
 #include <iostream>
 #include <format>
-#include <assert.h>
+#include <cassert>
 
-Generator::Generator(NodeProg root): m_Prog(std::move(root)) {
+Generator::Generator(NodeProg prog): m_Prog(std::move(prog)) {
     m_TypeChecker = std::make_unique<TypeChecker>(m_Scopes);
     m_OpGenerator = std::make_unique<OperationGenerator>(m_Output);
 }
@@ -61,13 +61,13 @@ void Generator::generateTerm(const NodeTerm* term) {
 }
 
 void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
-    TypeInfo typeInfo = m_TypeChecker->checkBinExpr(binExpr);
+    const TypeInfo typeInfo = m_TypeChecker->checkBinExpr(binExpr);
     if (!typeInfo.isValid) {
         error(typeInfo.errorMsg);
     }
 
-    TypeInfo leftType = m_TypeChecker->checkExpr(binExpr->left);
-    TypeInfo rightType = m_TypeChecker->checkExpr(binExpr->right);
+    const TypeInfo leftType = m_TypeChecker->checkExpr(binExpr->left);
+    const TypeInfo rightType = m_TypeChecker->checkExpr(binExpr->right);
 
     generateExpr(binExpr->right);
     generateExpr(binExpr->left);

@@ -36,7 +36,7 @@ private:
     void generateVariableLoad(const Var* var);
     void generateVariableStore(const Var* var);
     
-    void error(const std::string& msg);
+    static void error(const std::string& msg);
 private:
     const NodeProg m_Prog;
     std::stringstream m_Output;
