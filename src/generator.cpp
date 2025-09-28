@@ -346,10 +346,14 @@ void Generator::enterScope() {
 }
 
 void Generator::leaveScope() {
-    Scope scope = m_Scopes.back();
+    const Scope scope = m_Scopes.back();
     m_Scopes.pop_back();
     
     const size_t popCount = m_StackSize - scope.stackStart;
+    if (popCount <= 0) {
+        return;
+    }
+
     m_Output << "\tadd rsp, " << popCount << std::endl;
     m_StackSize = scope.stackStart;
 }

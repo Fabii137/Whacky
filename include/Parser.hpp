@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include "Tokenizer.hpp"
 #include "ArenaAllocator.hpp"
-#include <assert.h>
 
 enum class BinOp {
     Or, And, Band, Bor, Xor, Neq, Eq, Ge, Gt, Le, Lt, Add, Sub, Mul, Div 
@@ -76,8 +75,8 @@ struct NodeScope {
 };
 
 struct NodeMaybePredBut {
-    NodeExpr* expr;
-    NodeScope* scope;
+    NodeExpr* expr{};
+    NodeScope* scope{};
     std::optional<NodeMaybePred*> pred;
 };
 
@@ -90,8 +89,8 @@ struct NodeMaybePred {
 };
 
 struct NodeStmtMaybe {
-    NodeExpr* expr;
-    NodeScope* scope;
+    NodeExpr* expr{};
+    NodeScope* scope{};
     std::optional<NodeMaybePred*> pred;
 };
 
@@ -111,9 +110,9 @@ struct NodeStmtGimmeback {
 
 struct NodeStmtLoop {
     Token ident;
-    NodeExpr* start;
-    NodeExpr* end;
-    NodeScope* scope;
+    NodeExpr* start{};
+    NodeExpr* end{};
+    NodeScope* scope{};
 };
 
 struct NodeStmtWhy {
@@ -127,12 +126,12 @@ struct NodeStmtBye {
 
 struct NodeStmtGimme {
     Token ident;
-    NodeExpr* expr;
+    NodeExpr* expr{};
 };
 
 struct NodeStmtAssignment {
     Token ident;
-    NodeExpr* expr;
+    NodeExpr* expr{};
 };
 
 struct NodeStmt {
@@ -147,13 +146,13 @@ class Parser {
 public:
     Parser(std::vector<Token> tokens);
     std::optional<NodeTerm*> parseTerm();
-    std::optional<NodeExpr*> parseExpr(const int minPrec = 0);
+    std::optional<NodeExpr*> parseExpr(int minPrec = 0);
     std::optional<NodeScope*> parseScope();
     std::optional<NodeMaybePred*> parseMaybePred();
     std::optional<NodeStmt*> parseStmt();
     NodeProg parseProg();
 private:
-    std::optional<Token> peek(const int offset = 0) const;
+    std::optional<Token> peek(int offset = 0) const;
     Token consume();
     Token tryConsumeErr(const TokenType& type);
     std::optional<Token> tryConsume(const TokenType& type);

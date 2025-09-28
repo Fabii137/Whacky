@@ -443,8 +443,8 @@ std::optional<Token> Parser::tryConsume(const TokenType& type) {
 }
 
 void Parser::errorExpected(const std::string& msg) const {
-    auto prev = peek(-1);
-    auto curr = peek(0);
+    const auto prev = peek(-1);
+    const auto curr = peek(0);
 
     if (prev.has_value()) {
         const Token& token = prev.value();
