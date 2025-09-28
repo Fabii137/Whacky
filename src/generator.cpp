@@ -58,11 +58,6 @@ void Generator::generateTerm(const NodeTerm* term) {
 }
 
 void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
-    const TypeInfo typeInfo = m_TypeChecker->checkBinExpr(binExpr);
-    if (!typeInfo.isValid) {
-        error(typeInfo.errorMsg);
-    }
-
     const TypeInfo leftType = m_TypeChecker->checkExpr(binExpr->left);
     const TypeInfo rightType = m_TypeChecker->checkExpr(binExpr->right);
 
@@ -117,6 +112,11 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
 }
 
 void Generator::generateExpr(const NodeExpr* expr) {
+    const TypeInfo typeInfo = m_TypeChecker->checkExpr(expr);
+    if (!typeInfo.isValid) {
+        error(typeInfo.errorMsg);
+    }
+
     struct ExprVisitor {
         Generator& generator;
         void operator()(const NodeTerm* term) const {
