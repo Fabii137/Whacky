@@ -47,9 +47,6 @@ void Generator::generateTerm(const NodeTerm* term) {
             }
 
             const Thingy* thingy = generator.lookupThingy(call->ident.value.value());
-            if(!thingy) {
-                Generator::error("Undeclared function: " + call->ident.value.value());
-            }
             generator.m_Output << "\tcall " << thingy->label << "\n";
 
             generator.push("rax");
@@ -173,20 +170,20 @@ void Generator::generateMaybePred(const NodeMaybePred* pred, const std::string& 
     std::visit(visitor, pred->var);
 }
 
-void Generator::generateThingy(const NodeStmtThingy* thingy) {
-    const std::vector<VarType> params(thingy->params.size(), VarType::Int);
+void Generator::generateThingy(const NodeStmtThingy* stmtThingy) {
+    const std::vector<VarType> params(stmtThingy->params.size(), VarType::Int); // temp
 
-    const Thingy th {.paramTypes = params, .returnType = VarType::Int, .label = createLabel(thingy->name.value.value()) }; // temp
+    const Thingy thingy {.paramTypes = params, .returnType = VarType::Int, .label = createLabel(stmtThingy->name.value.value()) }; // temp
 
-    declareThingy(thingy->name.value.value(), th);
+    declareThingy(stmtThingy->name.value.value(), thingy);
 
-    m_Output << th.label << ":\n";
+    m_Output << thingy.label << ":\n";
     enterScope();
-    for(const Token& param : thingy->params) {
+    for(const Token& param : stmtThingy->params) {
         declareVar(param.value.value(), VarType::Int); //temp
     }
 
-    generateScope(thingy->scope);
+    generateScope(stmtThingy->scope);
     leaveScope();
     m_Output << "\tret\n";
 }
@@ -204,7 +201,7 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         void operator()(const NodeStmtGimme* gimme) const {
             const TypeInfo typeInfo = generator.m_TypeChecker->checkExpr(gimme->expr);
             if (!typeInfo.isValid) {
-                Generator::error(typeInfo.errorMsg);
+                error(typeInfo.errorMsg);
             }
 
             generator.declareVar(gimme->ident.value.value(), typeInfo.type);
@@ -212,7 +209,7 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         }
 
         void operator()(const NodeStmtAssignment* assignment) const {
-            Var* var = generator.lookupVar(assignment->ident.value.value());
+            const Var* var = generator.lookupVar(assignment->ident.value.value());
 
             generator.generateExpr(assignment->expr);
             generator.generateVariableStore(var);
@@ -397,6 +394,7 @@ const Thingy* Generator::lookupThingy(const std::string& name) {
             return &found->second;
         }
     }
+    error("Undeclared function: " + name);
     return nullptr;
 }
 

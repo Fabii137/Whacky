@@ -13,7 +13,7 @@ public:
     void generateBinExpr(const NodeBinExpr* binExpr);
     void generateScope(const NodeScope* scope);
     void generateMaybePred(const NodeMaybePred* pred, const std::string& endLabel);
-    void generateThingy(const NodeStmtThingy* thingy);
+    void generateThingy(const NodeStmtThingy* stmtThingy);
     void generateStmt(const NodeStmt* stmt);
     std::string generateProg();
     

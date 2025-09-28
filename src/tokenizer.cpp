@@ -117,7 +117,7 @@ std::vector<Token> Tokenizer::tokenize() {
             exit(EXIT_FAILURE);
         } else if (peek().value() == '"') {
             consume();
-            std::string buf = "";
+            std::string buf;
 
             while(peek().has_value()) {
                 if(peek().value() == '"') {
@@ -130,7 +130,7 @@ std::vector<Token> Tokenizer::tokenize() {
             tokens.push_back({ TokenType::string, m_Line, m_Col, buf });
         } else if (peek().value() == '\'') {
             consume();
-            std::string buf = "";
+            std::string buf;
 
             while(peek().has_value()) {
                 if(peek().value() == '\'') {
@@ -197,7 +197,7 @@ std::vector<Token> Tokenizer::tokenize() {
     return tokens;
 }
 
-std::optional<char> Tokenizer::peek(size_t offset /*=0*/) const {
+std::optional<char> Tokenizer::peek(const size_t offset /*=0*/) const {
     if(m_Index + offset >= m_Src.size()) {
         return {};
     }
