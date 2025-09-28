@@ -23,17 +23,17 @@ void Generator::generateTerm(const NodeTerm* term) {
         }
 
         void operator()(const NodeTermIdent* ident) const {
-            Var* var = generator.lookupVar(ident->ident.value.value());
+            const Var* var = generator.lookupVar(ident->ident.value.value());
             generator.generateVariableLoad(var);
         }
 
         void operator()(const NodeTermString* string) const {
-            auto label = generator.findStringLiteral(string->string.value.value());
+            const auto label = generator.findStringLiteral(string->string.value.value());
 
-            generator.m_Output << "\tlea rax, [rel " << label.value() << "]\n";
+            generator.m_Output << "\tlea rax, [rel " << label << "]\n";
             generator.push("rax");
 
-            generator.m_Output << "\tmov rax, "<< label.value() << "_len\n";
+            generator.m_Output << "\tmov rax, "<< label << "_len\n";
             generator.push("rax");
         }
 
@@ -42,13 +42,13 @@ void Generator::generateTerm(const NodeTerm* term) {
         }
 
         void operator()(const NodeTermCall* call) const {
-            for(auto it = call->args.rbegin(); it != call->args.rend(); it++) {
+            for(auto it = call->args.rbegin(); it != call->args.rend(); ++it) {
                 generator.generateExpr(*it);
             }
 
             const Thingy* thingy = generator.lookupThingy(call->ident.value.value());
             if(!thingy) {
-                generator.error("Undeclared function: " + call->ident.value.value());
+                Generator::error("Undeclared function: " + call->ident.value.value());
             }
             generator.m_Output << "\tcall " << thingy->label << "\n";
 
@@ -72,16 +72,20 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
     generateExpr(binExpr->right);
     generateExpr(binExpr->left);
 
-    if (leftType.type == VarType::String || rightType.type == VarType::String) {
-        pop("rax"); // left len
-        pop("rdx"); // left ptr
-        pop("rbx"); // right len
-        pop("rcx"); // right ptr
+    if (leftType.type == VarType::String) {
+        pop("rax"); // len
+        pop("rdx"); // ptr
     } else {
-        pop("rax"); // left num
-        pop("rbx"); // right num
+        pop("rax");
     }
-    
+
+    if (rightType.type == VarType::String) {
+        pop("rbx"); // len
+        pop("rcx"); // ptr
+    } else {
+        pop("rbx");
+    }
+
     switch (binExpr->op)
     {
         case BinOp::Add:
@@ -170,9 +174,9 @@ void Generator::generateMaybePred(const NodeMaybePred* pred, const std::string& 
 }
 
 void Generator::generateThingy(const NodeStmtThingy* thingy) {
-    std::vector<VarType> params(thingy->params.size(), VarType::Int);
+    const std::vector<VarType> params(thingy->params.size(), VarType::Int);
 
-    Thingy th {.paramTypes = params, .returnType = VarType::Int, .label = createLabel(thingy->name.value.value()) }; // temp
+    const Thingy th {.paramTypes = params, .returnType = VarType::Int, .label = createLabel(thingy->name.value.value()) }; // temp
 
     declareThingy(thingy->name.value.value(), th);
 
@@ -198,9 +202,9 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         }
 
         void operator()(const NodeStmtGimme* gimme) const {
-            TypeInfo typeInfo = generator.m_TypeChecker->checkExpr(gimme->expr);
+            const TypeInfo typeInfo = generator.m_TypeChecker->checkExpr(gimme->expr);
             if (!typeInfo.isValid) {
-                generator.error(typeInfo.errorMsg);
+                Generator::error(typeInfo.errorMsg);
             }
 
             generator.declareVar(gimme->ident.value.value(), typeInfo.type);
@@ -265,7 +269,7 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.enterScope();
             
             generator.declareVar(loop->ident.value.value(), VarType::Int);
-            Var* var = generator.lookupVar(loop->ident.value.value());
+            const Var* var = generator.lookupVar(loop->ident.value.value());
 
             generator.generateExpr(loop->start);
             generator.generateVariableStore(var);
@@ -351,7 +355,7 @@ void Generator::leaveScope() {
 }
 
 Var* Generator::lookupVar(const std::string& name) {    
-    for (auto it = m_Scopes.rbegin(); it != m_Scopes.rend(); it++) {
+    for (auto it = m_Scopes.rbegin(); it != m_Scopes.rend(); ++it) {
         auto found = it->vars.find(name);
         if(found != it->vars.end()) {
             return &found->second;
@@ -383,7 +387,7 @@ void Generator::declareThingy(const std::string& name, const Thingy& thingy) {
     currentScope.insert({ name, thingy });
 }
 const Thingy* Generator::lookupThingy(const std::string& name) {
-    for(auto it = m_Scopes.rbegin(); it != m_Scopes.rend(); it++) {
+    for(auto it = m_Scopes.rbegin(); it != m_Scopes.rend(); ++it) {
         auto found = it->functions.find(name);
         if(found != it->functions.end()) {
             return &found->second;
@@ -396,13 +400,9 @@ std::string Generator::createLabel(const std::string& name /*="label"*/) {
     return name + std::to_string(m_LabelCount++);
 }
 
-std::optional<std::string> Generator::findStringLiteral(const std::string& value, const bool& create /*=true*/) {
+std::string Generator::findStringLiteral(const std::string& value) {
     if(m_StringLiterals.contains(value)) {
         return m_StringLiterals.at(value);
-    }
-
-    if(!create) {
-        return {};
     }
 
     std::string label = "str" + std::to_string(m_StringLiterals.size());
@@ -414,7 +414,7 @@ std::optional<std::string> Generator::findStringLiteral(const std::string& value
     return label;
 }
 
-const std::string Generator::escapeString(const std::string& input) {
+std::string Generator::escapeString(const std::string& input) {
     std::string out;
     for (size_t i = 0; i < input.size(); i++) {
         if (input[i] == '\\' && i + 1 < input.size()) {
