@@ -187,6 +187,8 @@ void Generator::generateThingy(const NodeStmtThingy* stmtThingy) {
     declareThingy(stmtThingy->name.value.value(), thingy);
 
     m_Output << thingy.label << ":\n";
+
+    // function prologue
     m_Output << "\tpush rbp\n";
     m_Output << "\tmov rbp, rsp\n";
 
@@ -509,66 +511,37 @@ std::string Generator::escapeString(const std::string& input) {
 }
 
 void Generator::generateVariableLoad(const Var* var) {
-    if (var->isParam) {
-        switch (var->type) {
-            case VarType::Int:
-            case VarType::Bool:
-                push(std::format("qword [rbp + {}]", var->stackLoc));
-                break;
-                
-            case VarType::String: {
-                push(std::format("qword [rbp + {}]", var->stackLoc));
-                push(std::format("qword [rbp + {}]", var->stackLoc + 8));
-                break;
-            }
-        }
-    } else {
-        switch (var->type) {
-            case VarType::Int:
-            case VarType::Bool:
-                push(std::format("qword [rbp - {}]", var->stackLoc));
-                break;
-                
-            case VarType::String: {
-                push(std::format("qword [rbp - {}]", var->stackLoc));
-                push(std::format("qword [rbp - {}]", var->stackLoc - 8));
-                break;
-            }
+    const char op = (var->isParam) ? '+' : '-';
+    switch (var->type) {
+        case VarType::Int:
+        case VarType::Bool:
+            push(std::format("qword [rbp {} {}]", op, var->stackLoc));
+            break;
+            
+        case VarType::String: {
+            const size_t lenOffset = var->isParam ? var->stackLoc + 8 : var->stackLoc - 8;
+            push(std::format("qword [rbp {} {}]", op, var->stackLoc));
+            push(std::format("qword [rbp {} {}]", op, lenOffset));
+            break;
         }
     }
 }
 
 void Generator::generateVariableStore(const Var* var) {
-    if(var->isParam) {
-        switch(var->type) {
-            case VarType::Int:
-            case VarType::Bool:
-                pop("rax");
-                m_Output << std::format("\tmov [rbp + {}], rax\n", m_StackSize - var->stackLoc);
-                break;
-            case VarType::String:
-                pop("rax"); // len
-                pop("rbx"); // ptr
-                
-                m_Output << std::format("\tmov [rbp + {}], rbx\n", var->stackLoc);
-                m_Output << std::format("\tmov [rbp + {}], rax\n", var->stackLoc + 8);
-                break;
-        }
-    } else { 
-        switch(var->type) {
-            case VarType::Int:
-            case VarType::Bool:
-                pop("rax");
-                m_Output << std::format("\tmov [rbp - {}], rax\n", var->stackLoc);
-                break;
-            case VarType::String:
-                pop("rax"); // len
-                pop("rbx"); // ptr
-                
-                m_Output << std::format("\tmov [rbp - {}], rbx\n", var->stackLoc);
-                m_Output << std::format("\tmov [rbp - {}], rax\n", var->stackLoc - 8);
-                break;
-        }
+    const char op = (var->isParam) ? '+' : '-';
+    switch(var->type) {
+        case VarType::Int:
+        case VarType::Bool:
+            pop("rax");
+            m_Output << std::format("\tmov [rbp {} {}], rax\n", op, var->stackLoc);
+            break;
+        case VarType::String:
+            pop("rax"); // len
+            pop("rbx"); // ptr
+            const size_t lenOffset = var->isParam ? var->stackLoc + 8 : var->stackLoc - 8;
+            m_Output << std::format("\tmov [rbp {} {}], rbx\n", op, var->stackLoc);
+            m_Output << std::format("\tmov [rbp {} {}], rax\n", op, lenOffset);
+            break;
     }
 }
 
