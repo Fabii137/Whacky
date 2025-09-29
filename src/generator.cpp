@@ -49,6 +49,15 @@ void Generator::generateTerm(const NodeTerm* term) {
             const Thingy* thingy = generator.lookupThingy(call->ident.value.value());
             generator.m_Output << "\tcall " << thingy->label << "\n";
 
+            size_t totalParamSize = 0;
+            for(VarType paramType : thingy->paramTypes) {
+                totalParamSize += (paramType == VarType::String) ? 16 : 8;
+            }
+            if (totalParamSize > 0) {
+                generator.m_Output << "\tadd rsp, " << totalParamSize << "\n";
+                generator.m_StackSize -= totalParamSize;
+            }
+
             generator.push("rax");
         }
     };
@@ -178,13 +187,26 @@ void Generator::generateThingy(const NodeStmtThingy* stmtThingy) {
     declareThingy(stmtThingy->name.value.value(), thingy);
 
     m_Output << thingy.label << ":\n";
+    m_Output << "\tpush rbp\n";
+    m_Output << "\tmov rbp, rsp\n";
+
     enterScope();
-    for(const Token& param : stmtThingy->params) {
-        declareVar(param.value.value(), VarType::Int); //temp
+
+    size_t currentParamOffset = 16;
+    for(size_t i = 0; i < stmtThingy->params.size(); i++) {
+        const Token& param = stmtThingy->params[i];
+        VarType paramType = thingy.paramTypes[i];
+
+        declareParam(param.value.value(), paramType, currentParamOffset);
+
+        size_t paramSize = (paramType == VarType::String) ? 16 : 8;
+        currentParamOffset += paramSize;
     }
 
     generateScope(stmtThingy->scope);
+
     leaveScope();
+    m_Output << "\tpop rbp\n";
     m_Output << "\tret\n";
 }
 
@@ -206,6 +228,9 @@ void Generator::generateStmt(const NodeStmt* stmt) {
 
             generator.declareVar(gimme->ident.value.value(), typeInfo.type);
             generator.generateExpr(gimme->expr);
+
+            const Var* var = generator.lookupVar(gimme->ident.value.value());
+            generator.generateVariableStore(var);
         }
 
         void operator()(const NodeStmtAssignment* assignment) const {
@@ -257,8 +282,15 @@ void Generator::generateStmt(const NodeStmt* stmt) {
 
         void operator()(const NodeStmtGimmeback* gimmeback) const {
             generator.generateExpr(gimmeback->expr);
-
             generator.pop("rax");
+
+            const Scope& currentScope = generator.m_Scopes.back();
+            size_t cleanupSize = generator.m_StackSize - currentScope.stackStart;
+            if (cleanupSize > 0) {
+                generator.m_Output << "\tadd rsp, " << cleanupSize << "\n";
+            }
+            generator.m_Output << "\tpop rbp\n";
+
             generator.m_Output << "\tret\n";
         }
 
@@ -278,12 +310,12 @@ void Generator::generateStmt(const NodeStmt* stmt) {
 
             generator.generateExpr(loop->end);
             generator.pop("rax");
-            generator.m_Output << "\tcmp rax, [rsp + " << (generator.m_StackSize - var->stackLoc) << "]\n";
+            generator.m_Output << "\tcmp rax, [rbp - " << var->stackLoc << "]\n";
             generator.m_Output << "\tjle " << endLabel << "\n";
 
             generator.generateScope(loop->scope);
 
-            generator.m_Output << "\tadd qword [rsp + " << (generator.m_StackSize - var->stackLoc) << "], 1\n";
+            generator.m_Output << "\tadd qword [rbp - " << var->stackLoc << "], 1\n";
             generator.m_Output << "\tjmp " << startLabel << "\n";
             generator.m_Output << endLabel << ":\n";
 
@@ -313,18 +345,38 @@ void Generator::generateStmt(const NodeStmt* stmt) {
 }
 
 std::string Generator::generateProg() {
-    m_Output << "section .text\n\tglobal _start\n_start:\n";
+    m_Output << "section .text\n\tglobal _start\n";
+    
     m_Data << "section .data\n";
+    
     enterScope();
-
+    // generate all thingy definitions
     for(const NodeStmt* stmt : m_Prog.stmts) {
+        if (auto* stmtVar = std::get_if<NodeStmtThingy*>(&stmt->var)) {
+            generateThingy(*stmtVar);
+        }
+    }
+    
+    m_Output << "_start:\n";
+    m_Output << "\tpush rbp\n";
+    m_Output << "\tmov rbp, rsp\n";
+    
+    for(const NodeStmt* stmt : m_Prog.stmts) {
+        // skip thingies
+        if (std::holds_alternative<NodeStmtThingy*>(stmt->var)) {
+            continue;
+        }
         generateStmt(stmt);
     }
 
+    leaveScope();
+
+    m_Output << "\tpop rbp\n";
     m_Output << "\tmov rax, 60\n";
     m_Output << "\tmov rdi, 0\n";
     m_Output << "\tsyscall";
-    return m_Data.str() +  m_Output.str();
+    
+    return m_Data.str() + m_Output.str();
 }
 
 void Generator::push(const std::string& reg, size_t size /*=8*/) {
@@ -347,12 +399,10 @@ void Generator::leaveScope() {
     m_Scopes.pop_back();
     
     const size_t popCount = m_StackSize - scope.stackStart;
-    if (popCount <= 0) {
-        return;
+    if (popCount > 0) {
+        m_Output << "\tadd rsp, " << popCount << "\n";
+        m_StackSize = scope.stackStart;
     }
-
-    m_Output << "\tadd rsp, " << popCount << std::endl;
-    m_StackSize = scope.stackStart;
 }
 
 Var* Generator::lookupVar(const std::string& name) {    
@@ -377,7 +427,24 @@ void Generator::declareVar(const std::string& name, VarType type) {
         size = 16;
     }
 
-    currentScope.insert({ name, Var{ .size = size, .type = type, .stackLoc = m_StackSize } });
+    m_Output << "\tsub rsp, " << size << "\n";
+    m_StackSize += size;
+
+    currentScope.insert({ name, Var{ .size = size, .type = type, .stackLoc = m_StackSize, .isParam = false } });
+}
+
+void Generator::declareParam(const std::string& name, VarType type, size_t paramOffset) {
+    auto& currentScope = m_Scopes.back().vars;
+    if (currentScope.contains(name)) {
+        error("Parameter already declared: " + name);
+    }
+
+    size_t size = 8;
+    if (type == VarType::String) {
+        size = 16;
+    }
+
+    currentScope.insert({ name, Var { .size = size, .type = type, .stackLoc = paramOffset, .isParam = true } });
 }
 
 void Generator::declareThingy(const std::string& name, const Thingy& thingy) {
@@ -442,36 +509,66 @@ std::string Generator::escapeString(const std::string& input) {
 }
 
 void Generator::generateVariableLoad(const Var* var) {
-    switch (var->type) {
-        case VarType::Int:
-        case VarType::Bool:
-            push(std::format("qword [rsp + {}]", m_StackSize - var->stackLoc));
-            break;
-            
-        case VarType::String: {
-            size_t ptrOffset = m_StackSize - (var->stackLoc + 8);
-            push(std::format("qword [rsp + {}]", ptrOffset));
-            
-            size_t lenOffset = m_StackSize - (var->stackLoc + 16);
-            push(std::format("qword [rsp + {}]", lenOffset));
-            break;
+    if (var->isParam) {
+        switch (var->type) {
+            case VarType::Int:
+            case VarType::Bool:
+                push(std::format("qword [rbp + {}]", var->stackLoc));
+                break;
+                
+            case VarType::String: {
+                push(std::format("qword [rbp + {}]", var->stackLoc));
+                push(std::format("qword [rbp + {}]", var->stackLoc + 8));
+                break;
+            }
+        }
+    } else {
+        switch (var->type) {
+            case VarType::Int:
+            case VarType::Bool:
+                push(std::format("qword [rbp - {}]", var->stackLoc));
+                break;
+                
+            case VarType::String: {
+                push(std::format("qword [rbp - {}]", var->stackLoc));
+                push(std::format("qword [rbp - {}]", var->stackLoc - 8));
+                break;
+            }
         }
     }
 }
 
 void Generator::generateVariableStore(const Var* var) {
-    if (var->type == VarType::String) {
-        pop("rax"); // len
-        pop("rbx"); // ptr
-        
-        size_t ptrOffset = m_StackSize - (var->stackLoc + 8);
-        m_Output << std::format("\tmov [rsp + {}], rbx\n", ptrOffset);
-        
-        size_t lenOffset = m_StackSize - (var->stackLoc + 16);
-        m_Output << std::format("\tmov [rsp + {}], rax\n", lenOffset);
-    } else {
-        pop("rax");
-        m_Output << std::format("\tmov [rsp + {}], rax\n", m_StackSize - var->stackLoc);
+    if(var->isParam) {
+        switch(var->type) {
+            case VarType::Int:
+            case VarType::Bool:
+                pop("rax");
+                m_Output << std::format("\tmov [rbp + {}], rax\n", m_StackSize - var->stackLoc);
+                break;
+            case VarType::String:
+                pop("rax"); // len
+                pop("rbx"); // ptr
+                
+                m_Output << std::format("\tmov [rbp + {}], rbx\n", var->stackLoc);
+                m_Output << std::format("\tmov [rbp + {}], rax\n", var->stackLoc + 8);
+                break;
+        }
+    } else { 
+        switch(var->type) {
+            case VarType::Int:
+            case VarType::Bool:
+                pop("rax");
+                m_Output << std::format("\tmov [rbp - {}], rax\n", var->stackLoc);
+                break;
+            case VarType::String:
+                pop("rax"); // len
+                pop("rbx"); // ptr
+                
+                m_Output << std::format("\tmov [rbp - {}], rbx\n", var->stackLoc);
+                m_Output << std::format("\tmov [rbp - {}], rax\n", var->stackLoc - 8);
+                break;
+        }
     }
 }
 

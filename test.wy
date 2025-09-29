@@ -20,12 +20,15 @@ maybe (z) {
     x = x + 3;
 }
 
+yell("test\n");
 thingy test(num) {
-    gimmeback num+1;
+    yell("test2\n");
+    gimmeback num * 2;
 }
 
-gimme lol = test(1);
-
+yell("test3\n");
+gimme lol = test(5);
+yell("test4\n");
 
 /*
     l
@@ -36,6 +39,6 @@ gimme lol = test(1);
 gimme str = 'abcdefghijk';
 str = 'abcfhgfdghdfügo0dfugdf\n';
 yell(str);
-bye(x);
+bye(lol);
 
 

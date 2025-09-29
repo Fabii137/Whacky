@@ -25,6 +25,7 @@ private:
     void leaveScope();
     
     void declareVar(const std::string& name, VarType type);
+    void declareParam(const std::string& name, VarType type, size_t paramIdx);
     Var* lookupVar(const std::string& name);
     
     void declareThingy(const std::string& name, const Thingy& thingy);

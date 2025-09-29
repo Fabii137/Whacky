@@ -16,6 +16,7 @@ struct Var {
     size_t size = 8;
     VarType type;
     size_t stackLoc;
+    bool isParam;
 };
 
 struct Thingy {
