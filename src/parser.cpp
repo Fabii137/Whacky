@@ -40,7 +40,6 @@ std::optional<NodeTerm*> Parser::parseTerm() {
         NodeTerm* term = m_Allocator.alloc<NodeTerm>();
         term->var = termIdent;
         return term;
-        
     }
 
     if (const auto openParen = tryConsume(TokenType::open_paren)) {
