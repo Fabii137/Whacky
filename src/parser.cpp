@@ -200,15 +200,26 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         return stmt;
     }
     
-    if (
-        peek().has_value() && peek().value().type == TokenType::gimme 
-        && peek(1).has_value() && peek(1).value().type == TokenType::ident 
-        && peek(2).has_value() && peek(2).value().type == TokenType::eq
-    ) {
+    if (peek().has_value() && peek().value().type == TokenType::gimme) {
         consume(); // gimme
         NodeStmtGimme* gimme = m_Allocator.alloc<NodeStmtGimme>();
-        gimme->ident = consume();
-        consume(); // eq
+        gimme->ident = tryConsumeErr(TokenType::ident);
+        
+        tryConsumeErr(TokenType::colon);
+        NodeType* type = m_Allocator.alloc<NodeType>();
+        
+        auto typeToken = peek();
+        if (!typeToken.has_value() || (
+            typeToken.value().type != TokenType::type_number &&
+            typeToken.value().type != TokenType::type_string &&
+            typeToken.value().type != TokenType::type_bool
+        )) {
+            errorExpected("type (number, str, or bool)");
+        }
+        type->type = consume().type;
+        gimme->type = type;
+        
+        tryConsumeErr(TokenType::eq);
 
         if(const auto expr = parseExpr()) {
             gimme->expr = expr.value();
@@ -300,13 +311,43 @@ std::optional<NodeStmt*> Parser::parseStmt() {
 
         tryConsumeErr(TokenType::open_paren);
         while(const auto ident = tryConsume(TokenType::ident)) {
-            thingy->params.push_back(ident.value());
+            NodeParam* param = m_Allocator.alloc<NodeParam>();
+            param->name = ident.value();
+
+            tryConsumeErr(TokenType::colon);
+            NodeType* type = m_Allocator.alloc<NodeType>();
+            
+            auto typeToken = peek();
+            if (!typeToken.has_value() || (
+                typeToken.value().type != TokenType::type_number &&
+                typeToken.value().type != TokenType::type_string &&
+                typeToken.value().type != TokenType::type_bool
+            )) {
+                errorExpected("type (number, str or bool)");
+            }
+            type->type = consume().type;
+            param->type = type;
+            
+            thingy->params.push_back(param);
             if(!tryConsume(TokenType::comma).has_value()) {
                 break;
             }
         }
         tryConsumeErr(TokenType::close_paren);
 
+        tryConsumeErr(TokenType::colon);
+        NodeType* returnType = m_Allocator.alloc<NodeType>();
+        auto typeToken = peek();
+        if (!typeToken.has_value() || (
+            typeToken.value().type != TokenType::type_number &&
+            typeToken.value().type != TokenType::type_string &&
+            typeToken.value().type != TokenType::type_bool
+        )) {
+            errorExpected("return type (number, str or bool)");
+        }
+        returnType->type = consume().type;
+        thingy->returnType = returnType;
+        
         if(const auto scope = parseScope()) {
             thingy->scope = scope.value();
         } else {

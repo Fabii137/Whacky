@@ -8,6 +8,10 @@ enum class TokenType {
     gimme, // let
     ident,
     eq,
+    colon, // :
+    type_number, // number
+    type_string, // str
+    type_bool, // bool
 
     _or,
     _and,
@@ -58,6 +62,10 @@ inline std::string toString(const TokenType& type) {
         case TokenType::gimme: return "'gimme'";
         case TokenType::ident: return "identifier";
         case TokenType::eq: return "'='";
+        case TokenType::colon: return "':'";
+        case TokenType::type_number: return "'number'";
+        case TokenType::type_string: return "'str'";
+        case TokenType::type_bool: return "'bool'";
         case TokenType::_or: return "'or'";
         case TokenType::_and: return "'and'";
         case TokenType::bor: return "'lor'";

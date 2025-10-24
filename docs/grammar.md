@@ -1,20 +1,26 @@
 ```text
 [Prog] -> [Stmt]*
 
+[Type] -> {
+    number
+    str
+    bool
+}
+
 [Stmt] -> { 
-	bye([Expr])
-	gimme ident = [Expr]
+    bye([Expr])
+    gimme ident: [Type] = [Expr]
     ident = [Expr]
     maybe([Expr])[Scope][MaybePred]
     yell([Expr])
     loop(ident in [Expr]..[Expr])[Scope]
-    thingy ident([ParamList]?)[Scope]
+    thingy ident([ParamList]?): [Type] [Scope]
     gimmeback [Expr]
     why([Expr])[Scope]
     [Scope]
 }
 
-[ParamList] -> ident (, ident)*
+[ParamList] -> ident: [Type] (, ident: [Type])*
 
 [Scope] -> {
    {[Stmt]*}

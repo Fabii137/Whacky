@@ -1,6 +1,6 @@
-gimme x = 12 / (1 + 2 * 6 - 1); // 1
-gimme y = x + 5;
-gimme z = 1;
+gimme x: number = 12 / (1 + 2 * 6 - 1); // 1
+gimme y: number = x + 5;
+gimme z: bool = yep;
 
 why (x < 10) {
     x = x + 1;
@@ -20,10 +20,10 @@ maybe (z) {
     x = x + 3;
 }
 
-thingy test(num) {
-    gimmeback "hallo";
+thingy pow(num: number): number {
+    gimmeback num * num;
 }
-gimme lol = test(1);
+gimme lol: number = pow(10);
 
 /*
     l
@@ -31,9 +31,9 @@ gimme lol = test(1);
     bye(20);
 */
 
-gimme str = 'abcdefghijk';
-str = 'abcfhgfdghdfügo0dfugdf\n';
-yell(str);
-bye(lol);
+gimme string: str = 'abcdefghijk';
+string = 'abcfhgfdghdfügo0dfugdf\n';
+yell(string);
+bye(z);
 
 

@@ -7,10 +7,28 @@
 
 
 enum class VarType {
-    Int,
+    Number,
     Bool,
     String,
 };
+
+inline std::string getTypeName(VarType type) {
+    switch (type) {
+        case VarType::Number: return "number";
+        case VarType::String: return "str";
+        case VarType::Bool: return "bool";
+        default: return "unknown";
+    }
+}
+inline VarType tokenTypeToVarType(TokenType type) {
+    switch (type) {
+        case TokenType::type_number: return VarType::Number;
+        case TokenType::type_string: return VarType::String;
+        case TokenType::type_bool: return VarType::Bool;
+        default:
+            throw std::runtime_error("Invalid type token");
+    }
+}
 
 struct Var {
     size_t size = 8;
@@ -37,7 +55,7 @@ struct TypeInfo {
     std::string errorMsg;
     
     static TypeInfo error(const std::string& msg) {
-        return TypeInfo{VarType::Int, false, msg};
+        return TypeInfo{VarType::Number, false, msg};
     }
     
     static TypeInfo valid(VarType t) {

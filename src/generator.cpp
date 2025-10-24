@@ -180,9 +180,13 @@ void Generator::generateMaybePred(const NodeMaybePred* pred, const std::string& 
 }
 
 void Generator::generateThingy(const NodeStmtThingy* stmtThingy) {
-    const std::vector<VarType> params(stmtThingy->params.size(), VarType::Int); // temp
+    std::vector<VarType> params;
+    for (const NodeParam* param : stmtThingy->params) {
+        params.push_back(tokenTypeToVarType(param->type->type));
+    }
 
-    const Thingy thingy {.paramTypes = params, .returnType = VarType::Int, .label = createLabel(stmtThingy->name.value.value()) }; // temp
+    VarType returnType = tokenTypeToVarType(stmtThingy->returnType->type);
+    const Thingy thingy {.paramTypes = params, .returnType = returnType, .label = createLabel(stmtThingy->name.value.value()) };
 
     declareThingy(stmtThingy->name.value.value(), thingy);
 
@@ -196,10 +200,10 @@ void Generator::generateThingy(const NodeStmtThingy* stmtThingy) {
 
     size_t currentParamOffset = 16;
     for(size_t i = 0; i < stmtThingy->params.size(); i++) {
-        const Token& param = stmtThingy->params[i];
-        VarType paramType = thingy.paramTypes[i];
+        const NodeParam* param = stmtThingy->params[i];
+        VarType paramType = tokenTypeToVarType(param->type->type);
 
-        declareParam(param.value.value(), paramType, currentParamOffset);
+        declareParam(param->name.value.value(), paramType, currentParamOffset);
 
         size_t paramSize = (paramType == VarType::String) ? 16 : 8;
         currentParamOffset += paramSize;
@@ -223,12 +227,20 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         }
 
         void operator()(const NodeStmtGimme* gimme) const {
-            const TypeInfo typeInfo = generator.m_TypeChecker->checkExpr(gimme->expr);
-            if (!typeInfo.isValid) {
-                error(typeInfo.errorMsg);
+            // Get the type from the type annotation
+            VarType declaredType = tokenTypeToVarType(gimme->type->type);
+            
+            // Check expression type matches declared type
+            const TypeInfo exprType = generator.m_TypeChecker->checkExpr(gimme->expr);
+            if (!exprType.isValid) {
+                error(exprType.errorMsg);
+            }
+            if (exprType.type != declaredType) {
+                error(std::format("Type mismatch in variable declaration '{}'. Expected {}, got {}", 
+                    gimme->ident.value.value(), getTypeName(declaredType), getTypeName(exprType.type)));
             }
 
-            generator.declareVar(gimme->ident.value.value(), typeInfo.type);
+            generator.declareVar(gimme->ident.value.value(), declaredType);
             generator.generateExpr(gimme->expr);
 
             const Var* var = generator.lookupVar(gimme->ident.value.value());
@@ -237,6 +249,15 @@ void Generator::generateStmt(const NodeStmt* stmt) {
 
         void operator()(const NodeStmtAssignment* assignment) const {
             const Var* var = generator.lookupVar(assignment->ident.value.value());
+            const TypeInfo exprType = generator.m_TypeChecker->checkExpr(assignment->expr);
+            
+            if (!exprType.isValid) {
+                error(exprType.errorMsg);
+            }
+            if (exprType.type != var->type) {
+                error(std::format("Type mismatch in assignment to '{}'. Expected {}, got {}", 
+                    assignment->ident.value.value(), getTypeName(var->type), getTypeName(exprType.type)));
+            }
 
             generator.generateExpr(assignment->expr);
             generator.generateVariableStore(var);
@@ -299,7 +320,7 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         void operator()(const NodeStmtLoop* loop) const {
             generator.enterScope();
             
-            generator.declareVar(loop->ident.value.value(), VarType::Int);
+            generator.declareVar(loop->ident.value.value(), VarType::Number);
             const Var* var = generator.lookupVar(loop->ident.value.value());
 
             generator.generateExpr(loop->start);
@@ -513,7 +534,7 @@ std::string Generator::escapeString(const std::string& input) {
 void Generator::generateVariableLoad(const Var* var) {
     const char op = (var->isParam) ? '+' : '-';
     switch (var->type) {
-        case VarType::Int:
+        case VarType::Number:
         case VarType::Bool:
             push(std::format("qword [rbp {} {}]", op, var->stackLoc));
             break;
@@ -530,7 +551,7 @@ void Generator::generateVariableLoad(const Var* var) {
 void Generator::generateVariableStore(const Var* var) {
     const char op = (var->isParam) ? '+' : '-';
     switch(var->type) {
-        case VarType::Int:
+        case VarType::Number:
         case VarType::Bool:
             pop("rax");
             m_Output << std::format("\tmov [rbp {} {}], rax\n", op, var->stackLoc);

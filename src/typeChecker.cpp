@@ -24,7 +24,7 @@ TypeInfo TypeChecker::checkTerm(const NodeTerm* term) {
     struct TermTypeVisitor {
         TypeChecker& checker;
         TypeInfo operator()(const NodeTermIntLit*) const {
-            return TypeInfo::valid(VarType::Int);
+            return TypeInfo::valid(VarType::Number);
         }
         TypeInfo operator()(const NodeTermBool*) const {
             return TypeInfo::valid(VarType::Bool);
@@ -59,7 +59,8 @@ TypeInfo TypeChecker::checkTerm(const NodeTerm* term) {
                 }
 
                 if(argType.type != thingy->paramTypes[i]) {
-                    return TypeInfo::error(std::format("Type mismatch in argument {} of function {}", i, call->ident.value.value()));
+                    return TypeInfo::error(std::format("Type mismatch in argument {} of function '{}'. Expected {}, got {}", 
+                        i, call->ident.value.value(), getTypeName(thingy->paramTypes[i]), getTypeName(argType.type)));
                 }
             }
 
@@ -89,27 +90,29 @@ TypeInfo TypeChecker::checkBinExpr(const NodeBinExpr* binExpr) {
             if (leftType.type == VarType::String || rightType.type == VarType::String) {
                 return TypeInfo::valid(VarType::String);
             }
-            if (leftType.type == VarType::Int && rightType.type == VarType::Int) {
-                return TypeInfo::valid(VarType::Int);
+            if (leftType.type == VarType::Number && rightType.type == VarType::Number) {
+                return TypeInfo::valid(VarType::Number);
             }
-            return TypeInfo::error("Invalid types for addition");
+            return TypeInfo::error(std::format("Invalid types for addition: cannot add {} and {}", 
+                getTypeName(leftType.type), getTypeName(rightType.type)));
             
         case BinOp::Mul:
-            if ((leftType.type == VarType::String && rightType.type == VarType::Int) ||
-                (leftType.type == VarType::Int && rightType.type == VarType::String)) {
+            if ((leftType.type == VarType::String && rightType.type == VarType::Number) ||
+                (leftType.type == VarType::Number && rightType.type == VarType::String)) {
                 return TypeInfo::valid(VarType::String);
             }
-            if (leftType.type == VarType::Int && rightType.type == VarType::Int) {
-                return TypeInfo::valid(VarType::Int);
+            if (leftType.type == VarType::Number && rightType.type == VarType::Number) {
+                return TypeInfo::valid(VarType::Number);
             }
-            return TypeInfo::error("Invalid types for multiplication");
+            return TypeInfo::error(std::format("Invalid types for multiplication: cannot multiply {} and {}", 
+                getTypeName(leftType.type), getTypeName(rightType.type)));
             
         case BinOp::Sub:
         case BinOp::Div:
-            if (leftType.type != VarType::Int || rightType.type != VarType::Int) {
-                return TypeInfo::error("Arithmetic operations require integers");
+            if (leftType.type != VarType::Number || rightType.type != VarType::Number) {
+                return TypeInfo::error("Arithmetic operations require numbers");
             }
-            return TypeInfo::valid(VarType::Int);
+            return TypeInfo::valid(VarType::Number);
             
         case BinOp::Eq:
         case BinOp::Neq:
@@ -134,7 +137,7 @@ TypeInfo TypeChecker::checkBinExpr(const NodeBinExpr* binExpr) {
             if (leftType.type == VarType::String || rightType.type == VarType::String) {
                 return TypeInfo::error("Bitwise operations not supported on strings");
             }
-            return TypeInfo::valid(VarType::Int);
+            return TypeInfo::valid(VarType::Number);
             
         default:
             return TypeInfo::error("Unknown binary operator");

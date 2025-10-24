@@ -52,6 +52,12 @@ std::vector<Token> Tokenizer::tokenize() {
                 tokens.push_back({ TokenType::bor, m_Line, m_Col });
             } else if (buf == "xor") {
                 tokens.push_back({ TokenType::_xor, m_Line, m_Col });
+            } else if (buf == "number") {
+                tokens.push_back({ TokenType::type_number, m_Line, m_Col });
+            } else if (buf == "str") {
+                tokens.push_back({ TokenType::type_string, m_Line, m_Col });
+            } else if (buf == "bool") {
+                tokens.push_back({ TokenType::type_bool, m_Line, m_Col });
             } else {
                 tokens.push_back({ TokenType::ident, m_Line, m_Col, buf });
             }
@@ -180,6 +186,9 @@ std::vector<Token> Tokenizer::tokenize() {
         } else if (peek().value() == '.') {
             consume();
             tokens.push_back({ TokenType::dot, m_Line, m_Col });
+        } else if (peek().value() == ':') {
+            consume();
+            tokens.push_back({ TokenType::colon, m_Line, m_Col });
         } else if (peek().value() == ',') {
             consume();
             tokens.push_back({ TokenType::comma, m_Line, m_Col });

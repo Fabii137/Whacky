@@ -30,6 +30,7 @@ inline static const std::unordered_map<TokenType, BinOp> tokenTypeToBinOp = {
 struct NodeExpr;
 struct NodeStmt;
 struct NodeMaybePred;
+struct NodeType;
 
 struct NodeBinExpr {
    BinOp op;
@@ -98,9 +99,15 @@ struct NodeStmtYell {
     NodeExpr* expr;
 };
 
+struct NodeParam {
+    Token name;
+    NodeType* type;
+};
+
 struct NodeStmtThingy {
     Token name;
-    std::vector<Token> params;
+    std::vector<NodeParam*> params;
+    NodeType* returnType;
     NodeScope* scope;
 };
 
@@ -124,8 +131,13 @@ struct NodeStmtBye {
     NodeExpr* expr;
 };
 
+struct NodeType {
+    TokenType type;  // type_number, type_string, type_bool
+};
+
 struct NodeStmtGimme {
     Token ident;
+    NodeType* type;
     NodeExpr* expr{};
 };
 
