@@ -1,12 +1,6 @@
 ```text
 [Prog] -> [Stmt]*
 
-[Type] -> {
-    number
-    str
-    bool
-}
-
 [Stmt] -> { 
     bye([Expr])
     gimme ident: [Type] = [Expr]
@@ -18,6 +12,12 @@
     gimmeback [Expr]
     why([Expr])[Scope]
     [Scope]
+}
+
+[Type] -> {
+    number
+    str
+    bool
 }
 
 [ParamList] -> ident: [Type] (, ident: [Type])*
