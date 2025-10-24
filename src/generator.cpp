@@ -220,6 +220,15 @@ void Generator::generateStmt(const NodeStmt* stmt) {
     struct StmtVisitor {
         Generator& generator;
         void operator()(const NodeStmtBye* bye) const {
+            // check that the expression is a number
+            const TypeInfo exprType = generator.m_TypeChecker->checkExpr(bye->expr);
+            if (!exprType.isValid) {
+                error(exprType.errorMsg);
+            }
+            if (exprType.type != VarType::Number) {
+                error(std::format("bye() requires a number argument, got {}", getTypeName(exprType.type)));
+            }
+
             generator.generateExpr(bye->expr);
             generator.m_Output << "\tmov rax, 60\n";
             generator.pop("rdi");
@@ -290,6 +299,15 @@ void Generator::generateStmt(const NodeStmt* stmt) {
         }
 
         void operator()(const NodeStmtYell* yell) const {
+            // check that the expression is a string
+            const TypeInfo exprType = generator.m_TypeChecker->checkExpr(yell->expr);
+            if (!exprType.isValid) {
+                error(exprType.errorMsg);
+            }
+            if (exprType.type != VarType::String) {
+                error(std::format("yell() requires a string argument, got {}", getTypeName(exprType.type)));
+            }
+
             generator.generateExpr(yell->expr);
 
             generator.m_Output << "\tmov rax, 1\n";
