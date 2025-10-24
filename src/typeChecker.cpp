@@ -88,7 +88,7 @@ TypeInfo TypeChecker::checkBinExpr(const NodeBinExpr* binExpr) {
     switch (binExpr->op) {
         case BinOp::Add:
             if (leftType.type == VarType::String || rightType.type == VarType::String) {
-                return TypeInfo::valid(VarType::String);
+                return TypeInfo::error("Addition not supported on strings");
             }
             if (leftType.type == VarType::Number && rightType.type == VarType::Number) {
                 return TypeInfo::valid(VarType::Number);
