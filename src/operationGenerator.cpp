@@ -4,7 +4,7 @@
 void OperationGenerator::generateArithmetic(BinOp op, VarType leftType, VarType rightType) {
     switch (op) {
         case BinOp::Add:
-            if (leftType == VarType::String || rightType == VarType::String) {
+            if (leftType == VarType::String && rightType == VarType::String) {
                 std::cerr << "String addition not implemented" << std::endl;
                 exit(EXIT_FAILURE);
             } else {
@@ -17,7 +17,8 @@ void OperationGenerator::generateArithmetic(BinOp op, VarType leftType, VarType 
             break;
             
         case BinOp::Mul:
-            if (leftType == VarType::String || rightType == VarType::String) {
+            if (leftType == VarType::String && rightType == VarType::Number ||
+                leftType == VarType::Number && rightType == VarType::String) {
                 std::cerr << "String multiplication not implemented" << std::endl;
                 exit(EXIT_FAILURE);
             } else {

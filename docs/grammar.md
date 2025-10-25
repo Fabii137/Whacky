@@ -57,7 +57,7 @@
 
 [Term] -> {
     int_lit
-    bool                // yep / nope
+    bool
     string
     ident
     ([Expr])
