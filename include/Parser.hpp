@@ -115,7 +115,7 @@ struct NodeStmtGimmeback {
     NodeExpr* expr;
 };
 
-struct NodeStmtLoop {
+struct NodeStmtFour {
     Token ident;
     NodeExpr* start{};
     NodeExpr* end{};
@@ -147,7 +147,7 @@ struct NodeStmtAssignment {
 };
 
 struct NodeStmt {
-    std::variant<NodeStmtBye*, NodeStmtGimme*, NodeScope*, NodeStmtMaybe*, NodeStmtYell*, NodeStmtThingy*, NodeStmtGimmeback*, NodeStmtLoop*, NodeStmtWhy*, NodeStmtAssignment*> var;
+    std::variant<NodeStmtBye*, NodeStmtGimme*, NodeScope*, NodeStmtMaybe*, NodeStmtYell*, NodeStmtThingy*, NodeStmtGimmeback*, NodeStmtFour*, NodeStmtWhy*, NodeStmtAssignment*> var;
 };
 
 struct NodeProg {

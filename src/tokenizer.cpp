@@ -30,8 +30,8 @@ std::vector<Token> Tokenizer::tokenize() {
                 tokens.push_back({ TokenType::thingy, m_Line, m_Col });
             } else if (buf == "gimmeback") {
                 tokens.push_back({ TokenType::gimmeback, m_Line, m_Col });
-            } else if (buf == "loop") {
-                tokens.push_back({ TokenType::loop, m_Line, m_Col });
+            } else if (buf == "four") {
+                tokens.push_back({ TokenType::four, m_Line, m_Col });
             } else if (buf == "in") {
                 tokens.push_back({ TokenType::in, m_Line, m_Col });
             } else if (buf == "why") {

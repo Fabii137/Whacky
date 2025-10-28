@@ -375,18 +375,18 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         return stmt;
     }
 
-    if(tryConsume(TokenType::loop)) {
-        NodeStmtLoop* loop = m_Allocator.alloc<NodeStmtLoop>();
+    if(tryConsume(TokenType::four)) {
+        NodeStmtFour* four = m_Allocator.alloc<NodeStmtFour>();
         
         tryConsumeErr(TokenType::open_paren);
 
         Token ident = tryConsumeErr(TokenType::ident);
-        loop->ident = ident;
+        four->ident = ident;
         
         tryConsumeErr(TokenType::in);
 
         if(const auto start = parseExpr()) {
-            loop->start = start.value();
+            four->start = start.value();
         } else {
             errorExpected("expression");
         }
@@ -395,7 +395,7 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         tryConsumeErr(TokenType::dot);
 
         if(const auto end = parseExpr()) {
-            loop->end = end.value();
+            four->end = end.value();
         } else {
             errorExpected("expression");
         }
@@ -403,13 +403,13 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         tryConsumeErr(TokenType::close_paren);
 
         if(const auto scope = parseScope()) {
-            loop->scope = scope.value();
+            four->scope = scope.value();
         } else {
             errorExpected("scope");
         }
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
-        stmt->var = loop;
+        stmt->var = four;
         return stmt;
     }
 

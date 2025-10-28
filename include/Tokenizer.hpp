@@ -49,7 +49,7 @@ enum class TokenType {
     nah, // else
 
     why, // while
-    loop, // for
+    four, // for
     in, // loop ... in ...
     dot,
     comma,
@@ -96,7 +96,7 @@ inline std::string toString(const TokenType& type) {
         case TokenType::but: return "'but'";
         case TokenType::nah: return "'nah'";
         case TokenType::why: return "'why'";
-        case TokenType::loop: return "'loop'";
+        case TokenType::four: return "'loop'";
         case TokenType::in: return "'in'";
         case TokenType::dot: return "'.'";
         case TokenType::comma: return "','";

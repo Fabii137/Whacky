@@ -7,7 +7,7 @@ why (x < 10) {
     yell("incrementing x\n");
 }
 
-loop (i in 1..11) {
+four (i in 1..11) {
     x = i;
     yell('hey\n');
 }

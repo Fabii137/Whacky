@@ -335,13 +335,13 @@ void Generator::generateStmt(const NodeStmt* stmt) {
             generator.m_Output << "\tret\n";
         }
 
-        void operator()(const NodeStmtLoop* loop) const {
+        void operator()(const NodeStmtFour* four) const {
             generator.enterScope();
             
-            generator.declareVar(loop->ident.value.value(), VarType::Number);
-            const Var* var = generator.lookupVar(loop->ident.value.value());
+            generator.declareVar(four->ident.value.value(), VarType::Number);
+            const Var* var = generator.lookupVar(four->ident.value.value());
 
-            generator.generateExpr(loop->start);
+            generator.generateExpr(four->start);
             generator.generateVariableStore(var);
 
             const std::string startLabel = generator.createLabel("loop_start");
@@ -349,12 +349,12 @@ void Generator::generateStmt(const NodeStmt* stmt) {
 
             generator.m_Output << startLabel << ":\n";
 
-            generator.generateExpr(loop->end);
+            generator.generateExpr(four->end);
             generator.pop("rax");
             generator.m_Output << "\tcmp rax, [rbp - " << var->stackLoc << "]\n";
             generator.m_Output << "\tjle " << endLabel << "\n";
 
-            generator.generateScope(loop->scope);
+            generator.generateScope(four->scope);
 
             generator.m_Output << "\tadd qword [rbp - " << var->stackLoc << "], 1\n";
             generator.m_Output << "\tjmp " << startLabel << "\n";

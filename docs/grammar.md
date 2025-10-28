@@ -7,7 +7,7 @@
     ident = [Expr]
     maybe([Expr])[Scope][MaybePred]
     yell([Expr])
-    loop(ident in [Expr]..[Expr])[Scope]
+    four(ident in [Expr]..[Expr])[Scope]
     thingy ident([ParamList]?): [Type] [Scope]
     gimmeback [Expr]
     why([Expr])[Scope]
