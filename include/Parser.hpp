@@ -173,4 +173,5 @@ private:
     size_t m_Index = 0;
     const std::vector<Token> m_Tokens;
     ArenaAllocator m_Allocator;
+    int m_FunctionDepth = 0;
 };

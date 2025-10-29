@@ -348,11 +348,14 @@ std::optional<NodeStmt*> Parser::parseStmt() {
         returnType->type = consume().type;
         thingy->returnType = returnType;
         
+        m_FunctionDepth++;
         if(const auto scope = parseScope()) {
             thingy->scope = scope.value();
         } else {
+            m_FunctionDepth--;
             errorExpected("scope");
         }
+        m_FunctionDepth--;
 
         NodeStmt* stmt = m_Allocator.alloc<NodeStmt>();
         stmt->var = thingy;
@@ -360,6 +363,10 @@ std::optional<NodeStmt*> Parser::parseStmt() {
     }
 
     if(tryConsume(TokenType::gimmeback)) {
+        if (m_FunctionDepth == 0) {
+            errorExpected("'gimmeback' inside of a function");
+        }
+
         NodeStmtGimmeback* gimmeback = m_Allocator.alloc<NodeStmtGimmeback>();
 
         if(auto expr = parseExpr()) {
