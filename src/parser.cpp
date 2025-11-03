@@ -490,15 +490,21 @@ std::optional<Token> Parser::tryConsume(const TokenType& type) {
 }
 
 void Parser::errorExpected(const std::string& msg) const {
-    const auto prev = peek(-1);
     const auto curr = peek(0);
+    const auto prev = peek(-1);
 
-    if (prev.has_value()) {
-        const Token& token = prev.value();
-        std::cerr << "[Parse Error] Expected " << msg << " at " << token.line << ":" << token.col<< std::endl;
-    } else {
+    if (curr.has_value()) {
+        // expected at current token
         const Token& token = curr.value();
-        std::cerr << "[Parse Error] Expected " << msg << " before " << token.line << ":" << token.col << std::endl;
+        std::cerr << "[Parse Error] Expected " << msg << " but found " 
+                  << toString(token.type) << " at " << token.line 
+                  << ":" << token.col << std::endl;
+    } else if (prev.has_value()) {
+        // eof reached
+        const Token& token = prev.value();
+        std::cerr << "[Parse Error] Expected " << msg << " after " 
+                  << token.line << ":" << token.col 
+                  << " (reached end of file)" << std::endl;
     }
     exit(EXIT_FAILURE);
 }
