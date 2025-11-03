@@ -29,13 +29,33 @@ void OperationGenerator::generateArithmetic(BinOp op, VarType leftType, VarType 
             break;
             
         case BinOp::Mul:
-            if (leftType == VarType::String && rightType == VarType::Number ||
-                leftType == VarType::Number && rightType == VarType::String) {
-                std::cerr << "String multiplication not implemented" << std::endl;
-                exit(EXIT_FAILURE);
+              if ((leftType == VarType::String && rightType == VarType::Number) ||
+                (leftType == VarType::Number && rightType == VarType::String)) {
+                // string multiplication
+                m_Output << "\t; String multiplication\n";
+
+                // format: string in rdi/rsi, number in rdx
+                if (leftType == VarType::String) {
+                    m_Output << "\tmov rdi, rdx\n";         // string pointer (arg1)
+                    m_Output << "\tmov rsi, rax\n";         // string length (arg2)
+                    m_Output << "\tmov rdx, rbx\n";         // n (arg3)
+                } else {
+                    m_Output << "\tmov rdi, rcx\n";         // string pointer (arg1)
+                    m_Output << "\tmov rsi, rbx\n";         // string length (arg2)
+                    m_Output << "\tmov rdx, rax\n";         // n (arg3)
+                }
+                
+                m_Output << "\tsub rsp, 8\n";               // allocate space for out_len
+                m_Output << "\tmov rcx, rsp\n";             // pointer to out_len (arg4)
+                m_Output << "\tcall __whacky_strmul\n";
+                
+                // rax = result pointer
+                m_Output << "\tmov rdx, rax\n";             // result pointer
+                m_Output << "\tpop rax\n";                  // result length
             } else {
                 m_Output << "\tmul rbx\n";
             }
+            break;
             break;
             
         case BinOp::Div:

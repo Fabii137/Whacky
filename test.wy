@@ -33,6 +33,6 @@ gimme lol: number = pow(10);
 
 gimme string: str = 'abcdefghijk';
 string = 'abcfhgfdghdfügo0dfugdf\n';
-yell(string + string);
+yell(string * 10);
 
 

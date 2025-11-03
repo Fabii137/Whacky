@@ -396,8 +396,9 @@ void Generator::generateStmt(const NodeStmt* stmt) {
 std::string Generator::generateProg() {
     m_Output << "section .text\n";
     m_Output << "\tglobal _start\n";
-    m_Output << "\textern __whacky_strcat\n\n";
-    
+    m_Output << "\textern __whacky_strcat\n";
+    m_Output << "\textern __whacky_strmul\n\n";
+
     m_Data << "section .data\n";
     
     enterScope();
