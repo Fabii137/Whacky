@@ -69,6 +69,7 @@ void Generator::generateTerm(const NodeTerm* term) {
 void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
     const TypeInfo leftType = m_TypeChecker->checkExpr(binExpr->left);
     const TypeInfo rightType = m_TypeChecker->checkExpr(binExpr->right);
+    const TypeInfo resultType = m_TypeChecker->checkBinExpr(binExpr);
 
     generateExpr(binExpr->right);
     generateExpr(binExpr->left);
@@ -117,7 +118,14 @@ void Generator::generateBinExpr(const NodeBinExpr* binExpr) {
         default:
             error("Unknown Binary Operator");
     }
-    push("rax");
+    
+    // for string results, push both pointer and length
+    if (resultType.type == VarType::String) {
+        push("rdx"); // ptr
+        push("rax"); // len
+    } else {
+        push("rax");
+    }
 }
 
 void Generator::generateExpr(const NodeExpr* expr) {
@@ -386,7 +394,9 @@ void Generator::generateStmt(const NodeStmt* stmt) {
 }
 
 std::string Generator::generateProg() {
-    m_Output << "section .text\n\tglobal _start\n";
+    m_Output << "section .text\n";
+    m_Output << "\tglobal _start\n";
+    m_Output << "\textern __whacky_strcat\n\n";
     
     m_Data << "section .data\n";
     

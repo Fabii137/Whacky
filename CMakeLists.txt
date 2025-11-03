@@ -7,6 +7,9 @@ file(GLOB_RECURSE MY_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 
 add_executable(${CMAKE_PROJECT_NAME} ${MY_SOURCES})
 
+# Build runtime library
+add_library(whacky_runtime STATIC runtime/runtime.c)
+
 
 #DELETE THE OUT FOLDER AFTER CHANGING THIS BECAUSE VISUAL STUDIO DOESN'T SEEM TO RECOGNIZE THIS CHANGE AND REBUILD!
 option(PRODUCTION_BUILD "Make this a production build!" OFF)

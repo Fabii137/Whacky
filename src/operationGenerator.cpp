@@ -5,8 +5,20 @@ void OperationGenerator::generateArithmetic(BinOp op, VarType leftType, VarType 
     switch (op) {
         case BinOp::Add:
             if (leftType == VarType::String && rightType == VarType::String) {
-                std::cerr << "String addition not implemented" << std::endl;
-                exit(EXIT_FAILURE);
+                // String concatenation - call runtime function               
+                m_Output << "\t; String concatenation\n";
+                m_Output << "\tmov rdi, rdx\n";         // left pointer (arg1)
+                m_Output << "\tmov rsi, rax\n";         // left length (arg2)
+                m_Output << "\tmov rdx, rcx\n";         // right pointer (arg3)
+                m_Output << "\tmov rcx, rbx\n";         // right length (arg4)
+                m_Output << "\tsub rsp, 8\n";           // allocate space for out_len
+                m_Output << "\tmov r8, rsp\n";          // pointer to out_len (arg5)
+
+                m_Output << "\tcall __whacky_strcat\n";
+                
+                // rax = result pointer
+                m_Output << "\tmov rdx, rax\n";         // result pointer
+                m_Output << "\tpop rax\n";              // result length
             } else {
                 m_Output << "\tadd rax, rbx\n";
             }

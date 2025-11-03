@@ -35,6 +35,6 @@ int main(int argc, char* argv[]) {
     }
 
     system("nasm -felf64 out.asm");
-    system("ld -o out out.o");
+    system("ld -o out out.o libwhacky_runtime.a -lc -dynamic-linker /lib64/ld-linux-x86-64.so.2");
 
 }
