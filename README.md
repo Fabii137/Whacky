@@ -1,9 +1,6 @@
-
 # Whacky
-
-This is a basic compiler written c++ for educational purposes.
+This is a basic compiler (without much features :p) written in c++ for learning.
 The language grammar can be found at ./docs/grammar.md
-
 
 ## Requirements
 - `x86_64 Linux`
@@ -14,7 +11,6 @@ The language grammar can be found at ./docs/grammar.md
 ## Run:
 
  1.  create build directory
-
 ```shell
 mkdir build && cd build
 ```
